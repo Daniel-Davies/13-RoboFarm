@@ -6,11 +6,8 @@ title:  Team
 # {{ page.title }}
 
 
-## USER 1
-***UCI Net ID***: ucinetid1
+## Daniel Davies
+***UCI Net ID***: daviesdg
 
-## USER 2
-***UCI Net ID***: ucinetid2
-
-## USER 3
-***UCI Net ID***: ucinetid3
+## Brett Galkowski
+***UCI Net ID***: bgalkows
