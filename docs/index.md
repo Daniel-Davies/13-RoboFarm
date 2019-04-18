@@ -3,7 +3,7 @@ layout: default
 title:  Home
 ---
 
-Source code: https://github.com/USER/PROJECT (_fix this_)
+Source code: https://github.com/Daniel-Davies/13-RoboFarm
 
 Reports:
 
@@ -11,30 +11,20 @@ Reports:
 - [Status](status.html)
 - [Final](final.html)
 
-What's Markdown (`.md`)?
+What is RoboFarm?
 
-Markdown is markup that lets you write hypertext (HTML) documents
-in easy-to-read and easy-to-write plain text.
-No angle brackets `<></>` required for
-paragraphs, lists, blockquotes, tables, etc.
+Farming in Minecraft can be quite a time consuming process:
+We may have to wait whole day cycles to get a few crops. So to
+make the process we have made a tool that allows an AI to do the
+farming process for you and save more time for you to do whatever 
+else you want to do in the game.
 
+We have prepared a number of goals to reach:
 
-This is a paragraph (in Markdown). Some more
-text here.
+- MVP: We want the AI to realise that planting in Rock is bad and in Grass is good
+- Then hopefully we can allow our AI to start optimising by realising ploughed grass is even better
+- Finally we will try and allow the AI to reach optimal farming methods, e.g., using Bone Meal to speed things up
 
-This is another paragraph.
-
-This is a list:
-
-- Orange
-- Apple
-- Blueberry
-
-$$x^2 = y^2$$
-
-
-Just getting started with Markdown?
-See the [HTML <-> Markdown Quick Reference (Cheat Sheet)][quickref].
-
+Project By: Brett Galkowski & Daniel Davies
 
 [quickref]: https://github.com/mundimark/quickrefs/blob/master/HTML.md
