@@ -24,9 +24,9 @@
   <body>
 
     {% assign current = page.url | downcase | split: '/' %}
-    {% assign statusClass = 'disabled' %}
-    {% assign proposalClass = 'disabled' %}
-    {% assign finalClass = 'disabled' %}
+    {% assign statusClass = '' %}
+    {% assign proposalClass = '' %}
+    {% assign finalClass = '' %}
     {% for page in site.html_pages %}
       <!--h1>{{ page.url }}</h1-->
       {% if page.url == '/proposal.html' %}
