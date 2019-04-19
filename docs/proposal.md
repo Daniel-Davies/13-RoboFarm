@@ -75,10 +75,6 @@ Reinforcement learning with Q-learning
 
 
 ## Evaluation Plan
--metrics
--baseline
--expected improvement
--data used to evaluate
 
 The primary metric evaluating the performance of our agent will be the total amount of wheat collected during the testing period.  A possible secondary metric could be how many seeds were used, allowing the agent to learn efficient seed usage.  The baseline farming performance to start comparing against will be a completely random agent - one that simply randomly distributes the seeds across the given grid.  With a fully trained model, we expect to be able to improve the baseline performance by 50%.  The trained agent and baseline model will be tested and compared on a large set of grids representing farming plots. Each grid will be designed to illustrate certain in-game farming mechanics.
 
