@@ -76,6 +76,13 @@ Reinforcement learning with Q-learning
 
 ## Evaluation Plan
 
-The primary metric evaluating the performance of our agent will be the total amount of wheat collected during the testing period.  A possible secondary metric could be how many seeds were used, allowing the agent to learn efficient seed usage.  The baseline farming performance to start comparing against will be a completely random agent - one that simply randomly distributes the seeds across the given grid.  With a fully trained model, we expect to be able to improve the baseline performance by 50%.  The trained agent and baseline model will be tested and compared on a large set of grids representing farming plots. Each grid will be designed to illustrate certain in-game farming mechanics.
+The primary metric evaluating the performance of our agent will be the total amount of wheat collected during the testing period.  A possible secondary metric could be how many seeds were used, allowing the agent to learn efficient seed usage. 
 
-We will obtain qualitative proof that the algorithm is functional by testing it on never been seen grids and confirming its ability to learn the terrain and mechanics to farm effectively.  One simple sanity checking case would be to run the algorithm on a simple grid filled mostly with stone and one small patch of ploughed land.  In theory, the agent should easily learn to only plant in that one area to maximize its rewards.  We can visualize the algorithm in progress by displaying the changing Q table and policy while the agent explores and learns a grid.  The desired moonshot case is an agent that is capable of learning and applying all of the main farming principles in minecraft and adapting to new grid formulations.
+ The baseline farming performance to start comparing against will be a completely random agent - one that simply randomly distributes the seeds across the given grid.  With a fully trained model, we expect to be able to improve the baseline performance by 50%.  The trained agent and baseline model will be tested and compared on a large set of grids representing farming plots. Each grid will be designed to illustrate certain in-game farming mechanics.
+
+
+We will obtain qualitative proof that the algorithm is functional by testing it on never been seen grids and confirming its ability to learn the terrain and mechanics to farm effectively.  
+
+One simple sanity checking case would be to run the algorithm on a simple grid filled mostly with stone and one small patch of ploughed land.  In theory, the agent should easily learn to only plant in that one area to maximize its rewards.  
+
+We can visualize the algorithm in progress by displaying the changing Q table and policy while the agent explores and learns a grid.  The desired "moonshot case" is an agent that is capable of learning and applying all of the main farming principles in minecraft and adapting to new grid formulations.
