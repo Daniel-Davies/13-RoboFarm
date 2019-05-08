@@ -8,7 +8,13 @@ title:  Proposal
 Farming in minecraft can be quite a time consuming process, that involves quite a number of variables.
 For this reason, we are hoping to make an agent that can automate it for the user.
 
+## Amendment
 
+We will now most likely be switching to a new idea. We will now be using genetic algorithms in order to determine the most efficient places for seeds to go, given a map. Aka, we will create a reward function, and use malmo to generate a map, in which case we will calculate the optimal co-ordinates for n seeds by use of genetic algorithms.
+
+We start with an initial set of random locations and back-propagate the new locations from the output of the genetic algorithm.
+
+This also eliminates the need for waiting for a defined amount of time to collect our seeds IF we use a pre-calculated reward/ evaluation function.
 
 
 
