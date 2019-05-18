@@ -44,7 +44,7 @@ missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
         </About>
 
         <ModSettings>
-            <MsPerTick>100</MsPerTick>
+            <MsPerTick>1</MsPerTick>
         </ModSettings>
 
         <ServerSection>
@@ -57,10 +57,10 @@ missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
                 <AllowSpawning>false</AllowSpawning>
             </ServerInitialConditions>
             <ServerHandlers>
-                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1" />
+                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" />
                 <DrawingDecorator>
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
-                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />                    
                     <DrawCuboid x1="-3" y1="226" z1="-3" x2="3" y2="226" z2="3" type="farmland" />
                     <DrawCuboid x1="-1" y1="226" z1="-1" x2="1" y2="226" z2="1" type="stone" />
                 </DrawingDecorator>
@@ -167,12 +167,25 @@ rock = list(rock)
 print("g")
 agent_host.sendCommand("pitch 0.5")
 
-for i in range(0, num_seeds):
+planted_indices = []
+for i in range(0, num_seeds+1):
     x,z = dirt[i]
-    teleport(agent_host, x,z)
-    time.sleep(0.2);
-    agent_host.sendCommand("use 1")
 
+    print("planting: ", x, " ", z)
+    teleport(agent_host, x, z)
+    time.sleep(2);
+    agent_host.sendCommand("use 1")
+    planted_indices.append(i)
+
+time.sleep(55)
+for i in planted_indices:
+    x,z = dirt[i]
+    teleport(agent_host, x, z)
+    time.sleep(0.2);
+    agent_host.sendCommand("attack 1")
+    agent_host.sendCommand("attack 0")
+
+'''
 # Loop until mission ends:
 while world_state.is_mission_running:
     print(".", end="")
@@ -180,7 +193,12 @@ while world_state.is_mission_running:
     world_state = agent_host.getWorldState()
     for error in world_state.errors:
         print("Error:",error.text)
+'''
+
+time.sleep(36)
+
 
 print()
 print("Mission ended")
 # Mission has ended.
+
