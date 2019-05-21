@@ -27,6 +27,7 @@ import os
 import sys
 import time
 import random
+import collections
 
 if sys.version_info[0] == 2:
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
@@ -37,7 +38,7 @@ else:
 # More interesting generator string: "3;7,44*49,73,35:1,159:4,95:13,35:13,159:11,95:10,159:14,159:6,35:6,95:6;12;"
 
 num_seeds = 10
-
+# forceReset="true"
 missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
     <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <About>
@@ -58,7 +59,7 @@ missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
                 <AllowSpawning>false</AllowSpawning>
             </ServerInitialConditions>
             <ServerHandlers>
-                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" />
+                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" forceReset="true" />
                 <DrawingDecorator>
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />                    
@@ -116,38 +117,78 @@ def initialise_planting_coords(mapsize, num_seeds):
             break
     return seed_locations
 
-def cross_over():
+def breed(parent1, parent2):
+    if(parent1[1] > parent2[1]):
+        return parent1[0]
+    else:
+        return parent2[0]
+
+def cross_over(best, scores):
     #return a list of children
-    pass
+    newchilren = []
+    for i in range(len(scores)):
+        parent1 = scores[random.randint(0, len(scores)-1)]
+        parent2 = scores[random.randint(0,len(scores)-1)]
+        new_coord = breed(parent1, parent2)
+        while(True):
+            if(new_coord in best or new_coord in newchilren):
+                x,z = new_coord
+                x = x + 1
+                new_coord = (x,z)
+            else:
+                break
 
-def select_elite_seeds():
+        newchilren.append(new_coord)
+
+    return newchilren
+
+def select_elite_seeds(scores_tuples):
     #return top 50%- they made it to the next round
-    pass
+    top50 = len(scores_tuples) / 2
+    return scores_tuples[0:int(top50)]
 
-def score_seeds(seed_locations,dirt, rock):
+def select_weaker_seeds(scores_tuples):
+    #return top 50%- they made it to the next round
+    top50 = len(scores_tuples) / 2
+    return scores_tuples[int(top50):]
+
+def score_seeds(seed_locations,dirt, rock, water):
     #come up with a score function
     scores = dict()
     for i in range(len(seed_locations)):
         scores[seed_locations[i]] = 0
     
-    return scores
+    for f in range(len(seed_locations)):
+        x,z = seed_locations[f]
 
-def getBestPlantingCoords(dirt,rock, num_seeds):
+        for i in range(-1,2):
+            for j in range(-1,2):
+                if(((x+i),(z+j)) in water and not(i == j)):
+                    scores[(x,z)] = scores[(x,z)] + 1
+                    
+    return scores.items()
+
+def getBestPlantingCoords(dirt,rock,water, num_seeds):
     planting_coords = initialise_planting_coords(5, num_seeds)
 
     #for now lets do 10 rounds
     for i in range(10):
-        #score_seeds
-        pass
+        scores = score_seeds(planting_coords, dirt, rock, water) #as a 
+        planting_coords = []
+        scores = sorted(scores, key=lambda x:x[1])[::-1]
 
-    print(planting_coords)
+        best = select_elite_seeds(scores)
 
-    planting_coords = []
+        for i in best:
+            planting_coords.append(i[0])
+        
+        worst = select_weaker_seeds(scores)
 
-    for i in range(0, num_seeds+1):
-        planting_coords.append(dirt[i])
+        children = cross_over(best,worst)
 
-    print(planting_coords)
+        for i in children:
+            planting_coords.append(i)
+
     return planting_coords
 
 agent_host = MalmoPython.AgentHost()
@@ -190,44 +231,60 @@ while not world_state.has_mission_begun:
 
 print()
 print("Mission running ", end=' ')
-time.sleep(3)
+time.sleep(5)
 dirt = set()
 rock = set()
-
+water = set()
 
 for i in range(-1,2):
     for j in range(-1,2):
         rock.add((i,j))
 
-for i in range(-3,4):
-    for j in range(-3,4):
+
+for i in range(-5,6):
+    for j in range(-5,6):
         dirt.add((i,j))
 
 for i in range(-1,2):
     for j in range(-1,2):
         dirt.remove((i,j))
 
+for i in range(-6,7):
+    for j in range(-6,7):
+        water.add((i,j))
+
+for i in range(-5,6):
+    for j in range(-5,6):
+        water.remove((i,j))
+
+#print("-------------------WATER----------------------")
+#print(water)
+#print("-------------------WATER----------------------")
+
 dirt = list(dirt)
 rock = list(rock)
+water = list(water)
 
 agent_host.sendCommand("pitch 0.5")
 
-planting_coords = getBestPlantingCoords(dirt, rock, num_seeds)
+planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
 
 planted_indices = []
-for i in range(0, num_seeds+1):
+for i in range(0, len(planting_coords)):
     x,z = planting_coords[i]
     print("planting: ", x, " ", z)
+    if((x,z) in rock):
+        print("Hit rock")
     teleport(agent_host, x, z)
-    time.sleep(0.6);
+    time.sleep(2);
     agent_host.sendCommand("use 1")
     planted_indices.append(i)
 
 time.sleep(5)
 for i in planted_indices:
-    x,z = dirt[i]
+    x,z = planting_coords[i]
     teleport(agent_host, x, z)
-    time.sleep(0.6);
+    time.sleep(2);
     print("removing: ", x, " ", z)
     agent_host.sendCommand("attack 1")
     time.sleep(0.1)
