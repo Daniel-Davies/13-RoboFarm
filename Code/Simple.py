@@ -26,6 +26,7 @@ import MalmoPython
 import os
 import sys
 import time
+import random
 
 if sys.version_info[0] == 2:
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
@@ -61,7 +62,7 @@ missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
                 <DrawingDecorator>
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />                    
-                    <DrawCuboid x1="-3" y1="226" z1="-3" x2="3" y2="226" z2="3" type="farmland" />
+                    <DrawCuboid x1="-5" y1="226" z1="-5" x2="5" y2="226" z2="5" type="farmland" />
                     <DrawCuboid x1="-1" y1="226" z1="-1" x2="1" y2="226" z2="1" type="stone" />
                 </DrawingDecorator>
                 <ServerQuitWhenAnyAgentFinishes />
@@ -103,8 +104,53 @@ def teleport(agent_host, teleport_x, teleport_z):
         agent_host.sendCommand(tp_command)
         good_frame = False
 
-agent_host = MalmoPython.AgentHost()
 
+def initialise_planting_coords(mapsize, num_seeds):
+    seed_locations = []
+    while(True):
+        x = random.randint(-mapsize,mapsize)
+        y = random.randint(-mapsize,mapsize)
+        if((x,y) not in seed_locations):
+            seed_locations.append((x,y))
+        if (len(seed_locations) == num_seeds):
+            break
+    return seed_locations
+
+def cross_over():
+    #return a list of children
+    pass
+
+def select_elite_seeds():
+    #return top 50%- they made it to the next round
+    pass
+
+def score_seeds(seed_locations,dirt, rock):
+    #come up with a score function
+    scores = dict()
+    for i in range(len(seed_locations)):
+        scores[seed_locations[i]] = 0
+    
+    return scores
+
+def getBestPlantingCoords(dirt,rock, num_seeds):
+    planting_coords = initialise_planting_coords(5, num_seeds)
+
+    #for now lets do 10 rounds
+    for i in range(10):
+        #score_seeds
+        pass
+
+    print(planting_coords)
+
+    planting_coords = []
+
+    for i in range(0, num_seeds+1):
+        planting_coords.append(dirt[i])
+
+    print(planting_coords)
+    return planting_coords
+
+agent_host = MalmoPython.AgentHost()
 
 try:
     agent_host.parse( sys.argv )
@@ -144,7 +190,7 @@ while not world_state.has_mission_begun:
 
 print()
 print("Mission running ", end=' ')
-
+time.sleep(3)
 dirt = set()
 rock = set()
 
@@ -164,26 +210,29 @@ for i in range(-1,2):
 dirt = list(dirt)
 rock = list(rock)
 
-print("g")
 agent_host.sendCommand("pitch 0.5")
+
+planting_coords = getBestPlantingCoords(dirt, rock, num_seeds)
 
 planted_indices = []
 for i in range(0, num_seeds+1):
-    x,z = dirt[i]
-
+    x,z = planting_coords[i]
     print("planting: ", x, " ", z)
     teleport(agent_host, x, z)
-    time.sleep(2);
+    time.sleep(0.6);
     agent_host.sendCommand("use 1")
     planted_indices.append(i)
 
-time.sleep(55)
+time.sleep(5)
 for i in planted_indices:
     x,z = dirt[i]
     teleport(agent_host, x, z)
-    time.sleep(0.2);
+    time.sleep(0.6);
+    print("removing: ", x, " ", z)
     agent_host.sendCommand("attack 1")
+    time.sleep(0.1)
     agent_host.sendCommand("attack 0")
+
 
 '''
 # Loop until mission ends:
@@ -195,10 +244,9 @@ while world_state.is_mission_running:
         print("Error:",error.text)
 '''
 
-time.sleep(36)
-
 
 print()
 print("Mission ended")
 # Mission has ended.
-
+agent_host.sendCommand("attack 0")
+#pitch up etc
