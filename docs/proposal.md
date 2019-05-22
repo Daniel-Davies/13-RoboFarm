@@ -36,8 +36,7 @@ We have prepared a number of goals to reach:
 The more points we can cross off this list, the better we can say an agent is at farming, and the more trust a user would have
 in letting the AI manage the seeds a user has to reap rewards over a number of minecraft days.
 
-Input to our AI: The malmo API will let us generate worlds with a number of terrains, and also have access to these terrains as a
-JSON array, which show which blocks we have at a given location. We will also take in the number of seeds a user has to plant.
+Input to our AI: The malmo API will let us generate worlds with a number of terrains, by paramters that we specify. Because we specify the parameters, we will have a mapping of the minecraft world we are in to give a sense of navigation to our agent.
 
 Output: the agent will produce a set of actions to move around the world, searching for what it believes to be optimal blocks to plant in, and product 
 a plant action once it is satisifed that it has found one.
@@ -50,7 +49,7 @@ Now that we have a goal and some variables, we can describe some stages:
     Malmo will provide us with the methods needed to read the world. This will be especially important to start
     when we teach our AI about the terrain that it should plant on.
     We will most likely initialise a world conatining a number of terrains, e.g. Rock, Grass, and Ploughed Grass,
-    and allow the Agent, with it's reward function, to identify optimal spaces to plant in.
+    and give our agent a list of where each of these blocks are so that it can score each location.
 - The reward function:
     This will most likely be the amount of wheat collected. To ensure fairness, we will cut off the mission after a 
     fixed period, e.g. 2 minecraft days of growing.
