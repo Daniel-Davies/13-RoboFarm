@@ -279,10 +279,10 @@ water = list(water)
 
 agent_host.sendCommand("pitch 0.5")
 
-#planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
-#print(planting_coords)
+planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
+print(planting_coords)
 
-planting_coords = plant_random(10,10)
+#planting_coords = plant_random(10,10)
 
 planted_indices = []
 for i in range(0, len(planting_coords)):
