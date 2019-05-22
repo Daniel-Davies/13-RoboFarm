@@ -42,15 +42,95 @@
         </div>
     </nav>
 
-    <div class="container px-5">
+    <div class="container px-2">
         <h1>Minecraft Farming AI</h1>
         <p>Farming in minecraft can be quite a time consuming process, that involves quite a number of variables. For this reason,
             we are hoping to make an agent that can automate it for the user.</p>
 
-        <h1>Amendment</h1>
-        <p>We will now most likely be switching to a new idea. We will now be using genetic algorithms in order to determine
-            the most efficient places for seeds to go, given a map. Aka, we will create a reward function, and use malmo
-            to generate a map, in which case we will calculate the optimal co-ordinates for n seeds by use of genetic algorithms.</p>
+        <h1>Summary of the project</h1>
+        <p>There are quite a number of variables involved in farming in minecraft. These include:
+        </p>
+        <ul>
+            <li>Terrain: which block you place seeds on directly influences crop yield</li>
+            <li>Proximity to water: the closer to a river/water, the faster crops grow</li>
+            <li>Light: even if artificial, more light generally means a higher crop yield</li>
+            <li>Material Additions: Materials like Bone Meal can help make crop yield faster</li>
+        </ul>
+
+        <p>We have prepared a number of goals to reach:</p>
+        <ul>
+            <li>MVP: We want the AI to realise that planting on hydrated farmland is best, and avoid planting on rock or other
+                kinds of unplantable materials</li>
+            <li>We would like our algorithm to cluster seeds together on optimal land, since this means they will grow faster</li>
+            <li>Finally we will try and allow the AI to fix any plants that could not be planted on optimal soil by use of bone
+                meal etc to speed up growth</li>
+        </ul>
+        <p>The more points we can cross off this list, the better we can say an agent is at farming, and the more trust a user
+            would have in letting the AI manage the seeds a user has to reap rewards over a number of minecraft days.</p>
+
+        <p>Input to our AI: The malmo API will let us generate worlds with a number of terrains, by paramters that we specify.
+            Because we specify the parameters, we will have a mapping of the minecraft world we are in to give a sense of
+            navigation to our agent.</p>
+
+        <p>
+            Output: at each round, the agent will produce a set of locations on the map that it believes to be optimal points for planting
+            the seeds
+        </p>
+
+        <p>
+            Applications: Essentially, the project allows a player to automate farming, which can take a long time in minecraft.
+        </p>
+
+        <P>
+            Now that we have a goal and some variables, we can describe some stages:
+        </P>
+
+        <p>
+            Stage one: how do we get our data/ input from the world?
+        </p>
+
+        <p>
+            Malmo will provide us with the methods needed to read the world. This will be especially important to start when we teach
+            our AI about the terrain that it should plant on. We will most likely initialise a world conatining a number
+            of terrains, e.g. Rock, Grass, and Ploughed Grass, and give our agent a list of where each of these blocks are
+            so that it can score each location.
+        </p>
+        <p>The scoring function</p>
+        <p>
+            Initially we would like to keep it simple and leave our scoring function as a representation of how close a block is to water
+            Later on however we would like to actually execute a generation of our genetic algorithm in malmo, then reap
+            the crops at the locations that our AI has chosen, and the amount of wheat we obtain is the score. This should
+            hopefully get better with every round.
+        </p>
+        <p>
+            What to expect: Crops closest to water and torches grow fastest</p>
+        <p>
+            Output: A set of locations that our agent can reap, followed by a collection of wheat</p>
+        <p>Progress Tracking: We will use an agent that plants completely randomly as a baseline and measure our performace relative to this</p>
+
+        <h1>Algorithms</h1>
+        <p>A genetic algorithm</p>
+        <h1>Evaluation plan</h1>
+        <p>The primary metric evaluating the performance of our agent will be the total amount of wheat collected during the
+            testing period. A possible secondary metric could be how many seeds were used, allowing the agent to learn efficient
+            seed usage. </p>
+        <p> The baseline farming performance to start comparing against will be a completely random agent - one that simply randomly
+            distributes the seeds across the given grid. With a fully trained model, we expect to be able to improve the
+            baseline performance by 50%. The trained agent and baseline model will be tested and compared on a large set
+            of grids representing farming plots. Each grid will be designed to illustrate certain in-game farming mechanics.</p>
+        <p>
+            We will obtain qualitative proof that the algorithm is functional by testing it on never been seen grids and confirming its
+            ability to learn the terrain and mechanics to farm effectively.
+        </p>
+        <p>
+            One simple sanity checking case would be to run the algorithm on a simple grid filled mostly with stone and one small patch
+            of ploughed land. In theory, the agent should easily learn to only plant in that one area to maximize its rewards.
+        </p>
+        <p>
+            We can visualise our agent by making it plant our current best prediction of optimal farming spots and seeing how quickly
+            the wheat grows in those locations. As the number of rounds increases, the predictions should be getting better,
+            and the wheat should visually be growing faster.
+        </p>
     </div>
 
     <footer class="footer bg-dark p-3" style="width: 100%; position: fixed; bottom: 0;">
