@@ -12,7 +12,7 @@
     <!-- Latest compiled and minified JavaScript -->
 </head>
 
-<body>
+<body class="mb-5">
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">
         <div class="px-5">
             <a class="navbar-brand" href="/">RoboFarm: Automated Farming with Reinforcement Learning</a>
@@ -52,34 +52,84 @@
     <div class="px-5">
         <h1>Accessing the project</h1>
         <p>The project was built by Daniel Davies and Brett Galkowski as part of UCIs CS175 "Project in Aritifical Intelligence"
-            course</p>
+            course
+        </p>
         <p>Check the project out on
-            <a href="https://github.com/Daniel-Davies/13-RoboFarm">Github <img class="mx-3" height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />
+            <a href="https://github.com/Daniel-Davies/13-RoboFarm">Github
+                <img class="mx-3" height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />
             </a>
         </p>
     </div>
     <div class="px-5">
         <div class="row p-0 m-0 col-12">
-            <div class="col-6 p-0" >
+            <div class="col-6 p-0">
                 <h1>Summary of project</h1>
-                <p>Crop farming in Minecraft can be quite a time consuming process: We may have to wait whole day cycles to
-                    get a few crops. So to make the process we have made a tool that allows an AI to do the farming process
-                    for you and save more time for you to do whatever else you want to do in the game.
+                <p>Crop farming in Minecraft can be quite a time consuming process: to get any significant beneift in the game,
+                    we may have to first find suitable spots for the seeds to grow, and then physically go to each of those
+                    optimal locations to plant them. So to make the process we have made a tool that allows an AI to do the
+                    farming process for you and save more time for you to do whatever else you want to do in the game.
                 </p>
                 <p>The final aim of this project is to have an agent that, given a map, and some farmable objects defined by
                     the user, will plant the objects for the user in an optimal position.
                 </p>
                 <h5>What exactly is an optimal position you may ask?</h5>
-                <p>Technically there are many variables that influence the growth of a crop in minecraft. This includes:</p>
+                <p>Technically there are many variables that influence the growth of a crop in minecraft
+                    <a href="https://minecraft.gamepedia.com/Tutorials/Crop_farming">(see here for details).</a> This includes:</p>
                 <ul>
                     <li>Is the farmland block you're planting on hydrated?</li>
                     <li>Is there good lighting? (Provided by a torch)</li>
                     <li>Are the plants organised? If in a row/ column of crops, these will grow faster than individual crops.</li>
                 </ul>
-                <p>Given these criteria, out agent should work out where on an arbitrary map the crops should be planted using <b>GENTIC ALGORITHMS</b></p>
+                <p>Given these criteria, our agent should find optimal planting coordinates using
+                    <b>GENTIC ALGORITHMS</b>
+                </p>
             </div>
             <div class="col-6">
-                <img src="farming.png" style="width: 45vw; height: 40vh;"/>
+                <img src="farming.png" style="width: 45vw; height: 40vh;" />
+            </div>
+        </div>
+    </div>
+    <div class="px-5">
+        <div class="row p-0 m-0 col-12">
+            <div class="col-6 p-0">
+                <h1>Genetic algorithms</h1>
+                <p>In brief, a genetic algorithm is essentially a search algorithm based on natural selection. In general, the
+                    best "genes" (aka the best of your states from a set of states in your world) will survive and reporduce
+                    to make a better population in each round than you had before.</p>
+                <p>The stages of a genetic algorithm are roughly as follows: (see <a href="https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/gaintro.html">here</a>)</p>
+                <ul>
+                    <li>Generate a random population of n initial samples</li>
+                    <li>Evaluate the fitness f(x) score of each sample in the population</li>
+                    <li>Create a new population by repeating following steps until the new population is complete:
+                        <ol>
+                            <li>Select two parents from a population according to their fitness (the better fitness, the bigger chance to be selected)</li>
+                            <li>Form new children by using attributes of the selected parents</li>
+                            <li>Mutate each offspring slightly to allow for world exploration</li>
+                            <li>Add the child to the population</li>
+                        </ol>
+                    </li>
+                    <li>Re-run the algorithm based on your new population</li>
+                    <li>If the algorithm has converged/ you have reached your stopping condition, return the current results</li>
+                </ul>
+            </div>
+            <div class="col-6 ">
+                <h1>Related Resources on Genetic Algorithms</h1>
+                <p>Below is a list of resources we found useful when researching Genetic Algorithms
+                </p>
+
+                <h5>Matlab Article</h5>
+                <p class="pb-0 mb-0">This resource demonstrates how a genetic algorithm is used to find minimum points on a graph</p>
+                <p class="p-0 mt-0">A nice breakdown is given of the seperate stages of the genetic algorithm and how you can actually code up
+                    a solution by yourself</p>
+                <p>Visit
+                    <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a> to see the article</p>
+                <h5>Video Demonstration</h5>
+                <p>The below video shows a nice visual animation on how geentic algorithms repeatedly take the best performing
+                    samples from the "gene pool" to eventually converge on a population that each finds itself on some optimal
+                    point. </p>
+                <p>See the video on youtube
+                    <a href="https://www.youtube.com/watch?v=xNb3Hu2Ouuw">here</a>
+                </p>
             </div>
         </div>
     </div>
