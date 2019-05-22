@@ -22,6 +22,7 @@ from __future__ import print_function
 # Tutorial sample #2: Run simple mission using raw XML
 
 from builtins import range
+from math import hypot, sqrt
 import MalmoPython
 import os
 import sys
@@ -39,7 +40,7 @@ else:
 
 num_seeds = 10
 # forceReset="true"
-missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
+missionXML_hell = '''<?xml version="1.0" encoding="UTF-8" ?>
     <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <About>
             <Summary></Summary>
@@ -60,6 +61,63 @@ missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
             </ServerInitialConditions>
             <ServerHandlers>
                 <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" />
+                <DrawingDecorator>
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
+                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
+                    <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
+                </DrawingDecorator>
+                <ServerQuitWhenAnyAgentFinishes />
+            </ServerHandlers>
+        </ServerSection>
+
+        <AgentSection mode="Survival">
+            <Name>Odie</Name>
+            <AgentStart>
+                <Placement x="0.5" y="227.0" z="0.5"/>
+                <Inventory>
+                    <InventoryItem slot="0" type="wheat_seeds" quantity="'''+str(num_seeds)+'''"/>
+                </Inventory>
+            </AgentStart>
+            <AgentHandlers>
+                <ContinuousMovementCommands turnSpeedDegs="480"/>
+                <AbsoluteMovementCommands/>
+                <SimpleCraftCommands/>
+                <MissionQuitCommands/>
+                <InventoryCommands/>
+                <ObservationFromNearbyEntities>
+                    <Range name="entities" xrange="40" yrange="40" zrange="40"/>
+                </ObservationFromNearbyEntities>
+                <ObservationFromFullInventory/>
+                <AgentQuitFromCollectingItem>
+                    <Item type="rabbit_stew" description="Supper's Up!!"/>
+                </AgentQuitFromCollectingItem>
+            </AgentHandlers>
+        </AgentSection>
+
+    </Mission>'''
+
+missionXML_desert = '''<?xml version="1.0" encoding="UTF-8" ?>
+    <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <About>
+            <Summary></Summary>
+        </About>
+
+        <ModSettings>
+            <MsPerTick>1</MsPerTick>
+        </ModSettings>
+
+        <ServerSection>
+            <ServerInitialConditions>
+                <Time>
+                    <StartTime>6000</StartTime>
+                    <AllowPassageOfTime>false</AllowPassageOfTime>
+                </Time>
+                <Weather>clear</Weather>
+                <AllowSpawning>false</AllowSpawning>
+            </ServerInitialConditions>
+            <ServerHandlers>
+                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;2;,biome_1" />
                 <DrawingDecorator>
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
@@ -175,8 +233,30 @@ def select_weaker_seeds(scores_tuples):
     return scores_tuples[int(top50):]
 
 def score_seeds(seed_locations,dirt, rock, water):
-    #come up with a score function
+    assert(len(water) > 0)
     scores = dict()
+
+    for seed_tup in seed_locations:
+        if seed_tup in rock or seed_tup in water:
+            # Invalid seed placement -> 0.0 score
+            scores[seed_tup] = 0.0
+        else:
+            # Calculate distance from each water coordinate and score based on minimum
+            water_distances = []
+            for water_tup in water:
+                water_distances.append( hypot(water_tup[0] - seed_tup[0], water_tup[1] - seed_tup[1]) )
+            water_dist = min(water_distances)
+
+            max_distance = sqrt(200)  # sqrt(10^2 + 10^2), will vary based on map size
+            raw_score = max_distance - water_dist
+            if water_dist <= 4.0:
+                # Hydrated farmland
+                scores[seed_tup] = raw_score
+            else:
+                # Dry farmland -> apply flat penalty.  Minimum score 1.0
+                scores[seed_tup] = 1.0 if (raw_score - 2.0) < 1.0 else raw_score - 2.0
+
+    '''
     for i in range(len(seed_locations)):
         scores[seed_locations[i]] = 0
     
@@ -187,7 +267,8 @@ def score_seeds(seed_locations,dirt, rock, water):
             for j in range(-1,2):
                 if(((x+i),(z+j)) in water and not(i == j)):
                     scores[(x,z)] = scores[(x,z)] + 1
-                    
+    '''
+    print(scores)
     return scores.items()
 
 def getBestPlantingCoords(dirt,rock,water, num_seeds):
@@ -231,7 +312,7 @@ if agent_host.receivedArgument("help"):
     print(agent_host.getUsage())
     exit(0)
 
-my_mission = MalmoPython.MissionSpec(missionXML, True)
+my_mission = MalmoPython.MissionSpec(missionXML_hell, True)
 my_mission_record = MalmoPython.MissionRecordSpec()
 
 # Attempt to start a mission:
