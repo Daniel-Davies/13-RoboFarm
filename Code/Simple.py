@@ -59,12 +59,12 @@ missionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
                 <AllowSpawning>false</AllowSpawning>
             </ServerInitialConditions>
             <ServerHandlers>
-                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" forceReset="true" />
+                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" />
                 <DrawingDecorator>
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
-                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />                    
-                    <DrawCuboid x1="-5" y1="226" z1="-5" x2="5" y2="226" z2="5" type="farmland" />
-                    <DrawCuboid x1="-1" y1="226" z1="-1" x2="1" y2="226" z2="1" type="stone" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
+                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
+                    <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
                 </DrawingDecorator>
                 <ServerQuitWhenAnyAgentFinishes />
             </ServerHandlers>
@@ -105,6 +105,16 @@ def teleport(agent_host, teleport_x, teleport_z):
         agent_host.sendCommand(tp_command)
         good_frame = False
 
+def plant_random(mapsize, num_seeds):
+    planting = []
+    for i in range(num_seeds):
+        x = random.randint(-mapsize,mapsize)
+        y = random.randint(-mapsize,mapsize)
+        planting.append((x,y))
+
+    return planting
+
+
 
 def initialise_planting_coords(mapsize, num_seeds):
     seed_locations = []
@@ -118,29 +128,41 @@ def initialise_planting_coords(mapsize, num_seeds):
     return seed_locations
 
 def breed(parent1, parent2):
-    if(parent1[1] > parent2[1]):
-        return parent1[0]
-    else:
-        return parent2[0]
+    parents = [parent1[0],parent2[0]]
+    x = random.randint(0,1)
+    y = random.randint(0,1)
 
-def cross_over(best, scores):
+    return ((parents[x])[0], (parents[y])[1])
+
+def cross_over(best):
     #return a list of children
+    best_tuples = []
+    for i in best:
+        best_tuples.append(i[0])
     newchilren = []
-    for i in range(len(scores)):
-        parent1 = scores[random.randint(0, len(scores)-1)]
-        parent2 = scores[random.randint(0,len(scores)-1)]
+    for i in range(len(best)):
+        parent1 = best[random.randint(0, len(best)-1)]
+        parent2 = best[random.randint(0,len(best)-1)]
         new_coord = breed(parent1, parent2)
         while(True):
-            if(new_coord in best or new_coord in newchilren):
+            if(new_coord in best_tuples or new_coord in newchilren):
                 x,z = new_coord
                 x = x + 1
+                z = z - 1
                 new_coord = (x,z)
             else:
+
+                newchilren.append(new_coord)
                 break
-
-        newchilren.append(new_coord)
-
     return newchilren
+
+def mutate(coordinate):
+    x,y = coordinate
+    offsetX = random.randint(-3, 3)
+    offsetY = random.randint(-3, 3)
+    x = x + offsetX
+    y = y + offsetY
+    return (x,y)
 
 def select_elite_seeds(scores_tuples):
     #return top 50%- they made it to the next round
@@ -169,7 +191,7 @@ def score_seeds(seed_locations,dirt, rock, water):
     return scores.items()
 
 def getBestPlantingCoords(dirt,rock,water, num_seeds):
-    planting_coords = initialise_planting_coords(5, num_seeds)
+    planting_coords = initialise_planting_coords(10, num_seeds)
 
     #for now lets do 10 rounds
     for i in range(10):
@@ -182,12 +204,18 @@ def getBestPlantingCoords(dirt,rock,water, num_seeds):
         for i in best:
             planting_coords.append(i[0])
         
-        worst = select_weaker_seeds(scores)
-
-        children = cross_over(best,worst)
-
+        children = cross_over(best)
+  
         for i in children:
             planting_coords.append(i)
+        
+        mutation = random.randint(0, len(planting_coords)-1)
+        print("----------------------------------")
+        print("The index that is mutated is: " + str(mutation))
+        print(planting_coords)
+        planting_coords[mutation] = mutate(planting_coords[mutation])
+        print(planting_coords)
+        print("----------------------------------")
 
     return planting_coords
 
@@ -236,30 +264,14 @@ dirt = set()
 rock = set()
 water = set()
 
-for i in range(-1,2):
-    for j in range(-1,2):
-        rock.add((i,j))
-
-
-for i in range(-5,6):
-    for j in range(-5,6):
+for i in range(-10,11):
+    for j in range(-10,11):
         dirt.add((i,j))
 
-for i in range(-1,2):
-    for j in range(-1,2):
-        dirt.remove((i,j))
+water.add((0,0))
 
-for i in range(-6,7):
-    for j in range(-6,7):
-        water.add((i,j))
-
-for i in range(-5,6):
-    for j in range(-5,6):
-        water.remove((i,j))
-
-#print("-------------------WATER----------------------")
-#print(water)
-#print("-------------------WATER----------------------")
+for i in water:
+    dirt.remove(i)
 
 dirt = list(dirt)
 rock = list(rock)
@@ -267,7 +279,10 @@ water = list(water)
 
 agent_host.sendCommand("pitch 0.5")
 
-planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
+#planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
+#print(planting_coords)
+
+planting_coords = plant_random(10,10)
 
 planted_indices = []
 for i in range(0, len(planting_coords)):
