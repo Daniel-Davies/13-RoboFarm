@@ -42,12 +42,56 @@
         </div>
     </nav>
 
+    <div class="container d-flex justify-content-center mt-3">
+        <p class="display-3">Welcome to RoboFarm!</p>
+    </div>
+    <div class="container d-flex justify-content-center mt-3">
+        <p class="text-muted col-4 text-center" style="font-size: 1.3rem;">Saving you time by intelligently automating minecraft farming to give you an optimum crop growth</p>
+    </div>
+
+    <div class="px-5">
+        <h1>Accessing the project</h1>
+        <p>The project was built by Daniel Davies and Brett Galkowski as part of UCIs CS175 "Project in Aritifical Intelligence"
+            course</p>
+        <p>Check the project out on
+            <a href="https://github.com/Daniel-Davies/13-RoboFarm">Github <img class="mx-3" height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />
+            </a>
+        </p>
+    </div>
+    <div class="px-5">
+        <div class="row p-0 m-0 col-12">
+            <div class="col-6 p-0" >
+                <h1>Summary of project</h1>
+                <p>Crop farming in Minecraft can be quite a time consuming process: We may have to wait whole day cycles to
+                    get a few crops. So to make the process we have made a tool that allows an AI to do the farming process
+                    for you and save more time for you to do whatever else you want to do in the game.
+                </p>
+                <p>The final aim of this project is to have an agent that, given a map, and some farmable objects defined by
+                    the user, will plant the objects for the user in an optimal position.
+                </p>
+                <h5>What exactly is an optimal position you may ask?</h5>
+                <p>Technically there are many variables that influence the growth of a crop in minecraft. This includes:</p>
+                <ul>
+                    <li>Is the farmland block you're planting on hydrated?</li>
+                    <li>Is there good lighting? (Provided by a torch)</li>
+                    <li>Are the plants organised? If in a row/ column of crops, these will grow faster than individual crops.</li>
+                </ul>
+                <p>Given these criteria, out agent should work out where on an arbitrary map the crops should be planted using <b>GENTIC ALGORITHMS</b></p>
+            </div>
+            <div class="col-6">
+                <img src="farming.png" style="width: 45vw; height: 40vh;"/>
+            </div>
+        </div>
+    </div>
 
 
 
     <footer class="footer bg-dark p-3" style="width: 100%; position: fixed; bottom: 0;">
         <div class="d-flex justify-content-center">
-            <span class="text-white">Created by <a href="https://github.com/Daniel-Davies">Daniel Davies</a> and <a href="https://github.com/bgalkows">Brett Galkowski</a></span>
+            <span class="text-white">Created by
+                <a href="https://github.com/Daniel-Davies">Daniel Davies</a> and
+                <a href="https://github.com/bgalkows">Brett Galkowski</a>
+            </span>
         </div>
     </footer>
 </body>
