@@ -42,161 +42,251 @@
         </div>
     </nav>
 
-    <div class="container mx-2">
-        <h1>Summary of the project</h1>
-        <p>We are essentially creating an AI to find the best points of farmland on a map to plant wheat crops in. Results from
-            farming in minecraft can vary greatly based on a number of criteria, which our agent will use to evaluate positions
-            on the map for checking optimal positions. These criteria include:</p>
-        </p>
-        <ul>
-            <li>Terrain: which block you place seeds on directly influences crop yield</li>
-            <li>Proximity to water: the closer to a river/water, the faster crops grow</li>
-            <li>Light: even if artificial, more light generally means a higher crop yield</li>
-            <li>Material Additions: Materials like Bone Meal can help make crop yield faster</li>
-        </ul>
-
-        <p>Given these criteria, we are using a Genetic Algorithm to search for the optimal planting positions for wheat crops
-            in a minecraft world to get a maximum amount of crop yield for a given time frame </p>
-
-
-        <h1>Approach</h1>
-        <p>We will be using a Genetic Algorithm to solve this problem, which essentially involved mapping the problem to a graph
-            search problem and following the procedure for a genetic algorithm to allow our seeds to converge onto an optimal
-            location.
-        </p>
-        <h5>Setup</h5>
-        <p>To set the agent up with what it needs, we do the following:</p>
-        <ul>
-            <li>First, for this MVP version of our project, we generate a very simple world, which is essentally a square grid
-                containing:
-                <ol>
-                    <li>A water square at (0,0)</li>
-                    <li>Dirt around the water from (-10,10) in the (x,z) directions</li>
-                </ol>
-                This has the implication of creating
-                <em>hydrated</em> water from (-4,4) by minecraft rules [aka the "optimal" part of the map] and leaving the remaining
-                dirt squares as dry, and non optimal to plant on.
-            </li>
-            <li>The agent is given a range of squares to plant in, which for our purposes, could be any of the squares in (-10,10):
-                and now the agent should be successful in planting in the hydrated squares by use of the genetic algorithm
-                and our score function
-            </li>
-        </ul>
-        <p>Now our agent is given 10 seeds, and can do one of 2 methods:</p>
-        <ul>
-            <li>we wrote a function that plants seeds randomly, to measure a baseline performace. In a world of (-10,10) dirt
-                blocks,discluding the water block at the center, our agent can plant on 21*21 - 1 squares = 440, of which
-                (-4,4) -> 9*9 - 1 = 80 are plantable. So theoretically, 18% is the random agent success rate for this map
-                </li>
-            <li>Plant using our algorithm, which is discussed below, and evaluated against this random agent</li>
-        </ul>
-        <h5>Algorithm</h5>
-        <p>Our algorithm will essentially simulate placing the seeds on the map, and evaluate this potential placement using
-            our scoring function. It will do this until convergence. The steps are as follows:
-        </p>
-        <ul>
-            <li>We initialise 10 random seed locations, stored as (x,z) tuples</li>
-            <li>For 10 rounds, we do:
+    <div class="container col-12 d-flex justify-content-center mx-2">
+        <div class="col-8">
+                <h1>Summary of the project</h1>
+                <p>We are essentially creating an AI to find the best points of farmland on a map to plant wheat crops in. Results from
+                    farming in minecraft can vary greatly based on a number of criteria, which our agent will use to evaluate positions
+                    on the map, and eventually select the optimum locations for farming. The criteria include:</p>
+                </p>
                 <ul>
-                    <li>score the current seed locations</li>
-                    <li>take 5 "elite" seeds: that is, the best scoring seeds from the group. These 5 seeds automatically pass
-                        to the next round of seed locations
+                    <li>Terrain: which block you place seeds on directly influences crop yield</li>
+                    <li>Proximity to water: the closer to a river/water, the faster crops grow</li>
+                    <li>Light: even if artificial, more light generally means a higher crop yield</li>
+                    <li>Material Additions: Materials like Bone Meal can help make crop yield faster</li>
+                </ul>
+        
+                <p>Given these criteria, we are using a Genetic Algorithm to search for the optimal planting positions for wheat crops
+                    in a minecraft world to get a maximum amount of crop yield for a given time frame </p>
+        
+        
+                <h1>Approach</h1>
+                <p>We will be using a Genetic Algorithm to solve this problem, which essentially involves mapping the problem to a graph
+                    search problem and following the procedure for a genetic algorithm to allow our seeds to converge onto an optimal
+                    location.
+                </p>
+                <h5>Setup</h5>
+                <p>To set the agent up with what it needs, we do the following:</p>
+                <ul>
+                    <li>First, for this MVP version of our project, we generate a very simple world, which is essentally a square grid
+                        containing:
+                        <ol>
+                            <li>A water square at (0,0)</li>
+                            <li>Dirt around the water from (-10,10) in the (x,z) directions</li>
+                        </ol>
+                        This has the implication of creating
+                        <em>hydrated</em> water from (-4,4) by [aka the "optimal" part of the map and where plants will grow fastest] and leaving the remaining
+                        dirt squares as dry, and non optimal to plant on.
+                    </li>
+                    <li>The agent is given a range of squares to plant in, which for our purposes, is any of the squares in (-10,10):
+                        the agent is successful if he puts a majority of the seeds in the hydrated square region at the end of the algorithm
+                    </li>
+                </ul>
+                <p>Now our agent is given 10 seeds, and can do one of 2 methods:</p>
+                <ul>
+                    <li>we wrote a function that plants seeds randomly, to measure a baseline performace. In a world of (-10,10) dirt
+                        blocks,discluding the water block at the center, our agent can plant on 21*21 - 1 squares = 440, of which
+                        (-4,4) -> 9*9 - 1 = 80 are plantable. So theoretically, 18% is the random agent success rate for this map
+                    </li>
+                    <li>Plant using our algorithm, which is discussed below, and evaluated against this random agent</li>
+                </ul>
+                <h5>Algorithm</h5>
+                <p>Our algorithm will essentially simulate placing the seeds on the map, and evaluate this potential placement using
+                    our scoring function. It will do this until convergence. The steps are as follows:
+                </p>
+                <ul>
+                    <li>We initialise 10 random seed locations, stored as (x,z) tuples</li>
+                    <li>For 10 rounds, we do:
+                        <ul>
+                            <li>score the current seed locations using our scoring function, which essentially measures distance to the nearest water block</li>
+                            <li>take 5 "elite" seeds: that is, the best scoring seeds from the group. These 5 seeds automatically pass
+                                to the next round of seed locations
+                            </li>
+                            <li>
+                                using the same 5 best seeds, generate 5 new children seeds by using their attributes. In this simple version of our algorithm,
+                                we essentially randomly take the x and z co-ordinate from either of the parents. This is a simple
+                                approach, but is quite effective is generating good results, accoring to
+                                <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a>
+                            </li>
+                            <li>The 5 best seed locations are taken along with the new 5 children, ready for the next round. The worst 5 "die"</li>
+                            <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds [[-3 to 3],[-3 to 3]] to a seed location</li>
+                        </ul>
+                    </li>
+                    <li>At the end of the generation of seed locations, we have a list of (x,z) pairs to place our seeds. We then plant
+                        these, and calculate how many were placed in the (-4,4) farmland section
+                    </li>
+                </ul>
+        
+                <h1>Remaining Goals and Challenges</h1>
+                <p>At the moment we have a very basic algorithm that will give us a better score than randomly placing seeds, but we
+                    have identified three main points of improvment</p>
+        
+                <ul>
+                    <li>
+                        <b>Making the planting real</b>
+                        <p>
+                            At the moment, our algorithm can be run fully out of malmo: we give it an array of where the locations of each block type
+                            are, and a scoring function, and the algorithm will give the best locations to place seeds after running
+                            some number of rounds consecutively.
+                        </p>
+                        <p>
+                            So essentially this relies entirely on our score function: if the scoring function models the map sufficiently well, the
+                            plants will grow optimally. However, this doesnt scale/ would be quite complex to build. For now, we
+                            can only model distances from interesting squares, for example, the score we are currently using is distance
+                            from the nearest water block. But minecraft farming depends on much more than this: a torch in the neighbouring
+                            square to a crop will make it grow faster, which our score function will not pick up, and so if on a
+                            map a seed is planted nearby a torch, the model could assign it a bad score, despite it being a good
+                            square to plant on.
+                        </p>
+        
+                        <p>
+                            This is where the malmo APIs could become useful: after each round of the genetic algorithm, we could
+                            <em>actually plant</em>
+                            at the locations generated by the algorithm for that round, then reap the seeds some time later, and calculate our score
+                            for each of the seed locations based on how quickly/ how well the plant actually grew.
+                        </p>
+                        <p>So our score function would become the reaction of the real minecraft environment, meaning that we get a
+                            more accurate model of where is best to plant in our world</p>
+                        <b>Challenges</b>
+                        <p>The malmo API does present a number of challenges when considering our project scope/ farming in minecraft
+                            in general. These include:</p>
+                        <ul>
+                            <li>
+                                Farming itself in minecraft is binary: although there are several "levels" of growth which would be useful for scoring the
+                                rate of the growth at a particular square, either the crop has grown or it hasn't, as far as the
+                                game is concerned when reaping the crops, meaning that rate of growth is difficult/ impossible to
+                                obtain with just the in-game APIs, meaning we would need some kind of computer vision solution to
+                                find whether one plant has outgrown another (unless one of the plants has grown and one hasn't).
+                            </li>
+                            <li>One of the biggest problems is planting and reaping consistently: we have noticed that, using the current
+                                teleport function, planting a seed on a square and then trying to reap it later from that same sqaure
+                                doesnt always work, because items are thrust into the air when reaped. To mitigate this, we could
+                                make the player move around the square the plant was reaped in, so that the agent is more likely
+                                to pick up the crop.
+                            </li>
+                        </ul>
                     </li>
                     <li>
-                        using the same 5 best seeds, generate 5 new children seeds by using their attributes. In this simple version of our algorithm,
-                        we essentially randomly take the x and z co-ordinate from either of the parents. This is a simple
-                        approach, but is quite effective is generating good results, accoring to
-                        <a
-                            href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a>
+                        <b>Map Exploration</b>
+                        <p>Inherently, the seeds are generated from the best seeds of the current round: so they will converge on the
+                            point(s) found by the best seed (s) in the first few rounds. </p>
+                        <p>But what happens if all of the seeds are generated in a very bad location?</p>
+                        <p>Currently to prevent this from happending, some "variance" vector is added to a point at the end of each
+                            round, which we included as the "mutation" aspect of the genetic algorithm with the hope of exploring
+                            the map slightly. However this doesnt quite solve the problem of making sure the map is explored if all
+                            seeds are generated on one side of the map, which means that we could end up converging on a minumum
+                            point in our map.
+                        </p>
+                        <p>To solve this we will implement a smarter mutation algorithm: one improvement we have been considering is
+                            crossing over (breeding) two points from our "elite" set that are a maximum distance away, then taking
+                            the x co-ordiante from one parent and the y co-ordinate from the other parent. This means that the seed
+                            ends up in a totally new place for at least some seed generations, especially at the starting rounds.
+                        </p>
+                        <p>Another mutation improvment could be something similar to the above, but instead taking the midpoints between
+                            the two furthest points. The best strategy, for overall best coverage of the map, could be a combination
+                            of the two techniques.</p>
                     </li>
-                    <li>The 5 best seed locations are taken along with the new 5 children, ready for the next round</li>
+                    <li>
+                        <b>Convergence</b>
+                        <p>At the moment, the genetic algorithm runs for 10 rounds. This was chosen through trial and error: when testing, it was found
+                            that this is the rough figure that the seeds converge on for this map. However a more rigorous definition
+                            of a cut off point must be found so that the algorithm can scale over to other maps. </p>
+                        
+                        <p>Defining when our algorithm converges comes down to determining how much difference there is between successive generations.
+                            If all of the seed locations plants of the next generation have only moved by one square, the chances are that the algorithm 
+                            has now converged and there is no need to continue.
+                        </p>
+                    </li>
+        
                 </ul>
-            </li>
-            <li>At the end of the generation of seed locations, we have a list of (x,z) pairs to place our seeds. We then plant
-                these, and visually inspect how much crop yield we got/ how many of the seeds were placed in the (-4,4) hydrated
-                farmland section.
-            </li>
-        </ul>
-
-        <h1>Related Resources on Genetic Algorithms</h1>
-        <p>Below is a list of resources we found useful when researching Genetic Algorithms
-        </p>
-
-        <h5>Matlab Article</h5>
-        <p class="pb-0 mb-0">This resource demonstrates how a genetic algorithm is used to find minimum points on a graph</p>
-        <p class="p-0 mt-0">A nice breakdown is given of the seperate stages of the genetic algorithm and how you can actually code up a solution
-            by yourself</p>
-        <p>Visit
-            <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a> to see the article</p>
-        <h5>Video Demonstration</h5>
-        <p>The below video shows a nice visual animation on how geentic algorithms repeatedly take the best performing samples
-            from the "gene pool" to eventually converge on a population that each finds itself on some optimal point. </p>
-        <p>See the video on youtube
-            <a href="https://www.youtube.com/watch?v=xNb3Hu2Ouuw">here</a>
-        </p>
-        <h5>Washington University</h5>
-        <p>This gives a brief insight into how genetic algorithms came about and a general overview of implementation</p>
-        <p>
-            See it <a href="https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/gaintro.html">here</a>
-        </p>
-        <h5>Wiki page</h5>
-        <p>Gives a few good examples of genetic algorithms</p>
-        <p>See it <a href="https://en.wikipedia.org/wiki/Genetic_algorithm">here</a></p>
-
-        <h1>Goals/Evaluation</h1>
-
-        <p>We have prepared a number of goals to reach:</p>
-        <ul>
-            <li>MVP: We want the AI to realise that planting on hydrated farmland is best, and avoid planting on rock or other
-                kinds of unplantable materials. This should guarantee us a "better than random" result</li>
-            <li>We would also like our algorithm to cluster seeds together on optimal land, since clustering plants together
-                in rows/ columns also means they will grow faster</li>
-            <li>Finally we will try and allow the AI to fix any plants that could not be planted on optimal soil by use of bone
-                meal etc to speed up growth</li>
-        </ul>
-        <p>The more points we can cross off this list, the better we can say an agent is at farming, and the more trust a user
-            would have in letting the AI manage the seeds a user has to reap rewards over a number of minecraft days.</p>
-
-        <p>Input to our AI: The malmo API will let us generate worlds with a number of terrains, by paramters that we specify.
-            Because we specify the parameters, we will have a mapping of the minecraft world we are in to give a sense of
-            navigation to our agent.</p>
-
-        <p>
-            Output: at each round, the agent will produce a set of locations on the map that it believes to be optimal points for planting
-            the seeds
-        </p>
-
-        <p>
-            Applications: Essentially, the project allows a player to automate farming, which can take a long time in minecraft.
-        </p>
-
-        <P>
-            Now that we have a goal and some variables, we can describe some stages:
-        </P>
-
-        <p>
-            Stage one: how do we get our data/ input from the world?
-        </p>
-
-        <p>
-            Malmo will provide us with the methods needed to read the world. This will be especially important to start when we teach
-            our AI about the terrain that it should plant on. We will most likely initialise a world conatining a number
-            of terrains, e.g. Rock, Grass, and Ploughed Grass, and give our agent a list of where each of these blocks are
-            so that it can score each location.
-        </p>
-        <p>The scoring function</p>
-        <p>
-            Initially we would like to keep it simple and leave our scoring function as a representation of how close a block is to water
-            Later on however we would like to actually execute a generation of our genetic algorithm in malmo, then reap
-            the crops at the locations that our AI has chosen, and the amount of wheat we obtain is the score. This should
-            hopefully get better with every round.
-        </p>
-        <p>
-            What to expect: Crops closest to water and torches grow fastest</p>
-        <p>
-            Output: A set of locations that our agent can reap, followed by a collection of wheat</p>
-        <p>Progress Tracking: We will use an agent that plants completely randomly as a baseline and measure our performace
-            relative to this</p>
+        
+                <h1>Evaluation of the current agent</h1>
+                <p>Below we evaluate our current agent compared to a random agent</p>
+                
+        
+                <h1>Related Resources on Genetic Algorithms</h1>
+                <p>Below is a list of resources we found useful when researching Genetic Algorithms
+                </p>
+        
+                <h5>Matlab Article</h5>
+                <p class="pb-0 mb-0">This resource demonstrates how a genetic algorithm is used to find minimum points on a graph</p>
+                <p class="p-0 mt-0">A nice breakdown is given of the seperate stages of the genetic algorithm and how you can actually code up a solution
+                    by yourself</p>
+                <p>Visit
+                    <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a> to see the article</p>
+                <h5>Video Demonstration</h5>
+                <p>The below video shows a nice visual animation on how geentic algorithms repeatedly take the best performing samples
+                    from the "gene pool" to eventually converge on a population that each finds itself on some optimal point. </p>
+                <p>See the video on youtube
+                    <a href="https://www.youtube.com/watch?v=xNb3Hu2Ouuw">here</a>
+                </p>
+                <h5>Washington University</h5>
+                <p>This gives a brief insight into how genetic algorithms came about and a general overview of implementation</p>
+                <p>
+                    See it
+                    <a href="https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/gaintro.html">here</a>
+                </p>
+                <h5>Wiki page</h5>
+                <p>Gives a few good examples of genetic algorithms</p>
+                <p>See it
+                    <a href="https://en.wikipedia.org/wiki/Genetic_algorithm">here</a>
+                </p>
+        
+                <h1>Goals/Evaluation</h1>
+        
+                <p>We have prepared a number of goals to reach:</p>
+                <ul>
+                    <li>MVP: We want the AI to realise that planting on hydrated farmland is best, and avoid planting on rock or other
+                        kinds of unplantable materials. This should guarantee us a "better than random" result</li>
+                    <li>We would also like our algorithm to cluster seeds together on optimal land, since clustering plants together
+                        in rows/ columns also means they will grow faster</li>
+                    <li>Finally we will try and allow the AI to fix any plants that could not be planted on optimal soil by use of bone
+                        meal etc to speed up growth</li>
+                </ul>
+                <p>The more points we can cross off this list, the better we can say an agent is at farming, and the more trust a user
+                    would have in letting the AI manage the seeds a user has to reap rewards over a number of minecraft days.</p>
+        
+                <p>Input to our AI: The malmo API will let us generate worlds with a number of terrains, by paramters that we specify.
+                    Because we specify the parameters, we will have a mapping of the minecraft world we are in to give a sense of
+                    navigation to our agent.</p>
+        
+                <p>
+                    Output: at each round, the agent will produce a set of locations on the map that it believes to be optimal points for planting
+                    the seeds
+                </p>
+        
+                <p>
+                    Applications: Essentially, the project allows a player to automate farming, which can take a long time in minecraft.
+                </p>
+        
+                <P>
+                    Now that we have a goal and some variables, we can describe some stages:
+                </P>
+        
+                <p>
+                    Stage one: how do we get our data/ input from the world?
+                </p>
+        
+                <p>
+                    Malmo will provide us with the methods needed to read the world. This will be especially important to start when we teach
+                    our AI about the terrain that it should plant on. We will most likely initialise a world conatining a number
+                    of terrains, e.g. Rock, Grass, and Ploughed Grass, and give our agent a list of where each of these blocks are
+                    so that it can score each location.
+                </p>
+                <p>The scoring function</p>
+                <p>
+                    Initially we would like to keep it simple and leave our scoring function as a representation of how close a block is to water
+                    Later on however we would like to actually execute a generation of our genetic algorithm in malmo, then reap
+                    the crops at the locations that our AI has chosen, and the amount of wheat we obtain is the score. This should
+                    hopefully get better with every round.
+                </p>
+                <p>
+                    What to expect: Crops closest to water and torches grow fastest</p>
+                <p>
+                    Output: A set of locations that our agent can reap, followed by a collection of wheat</p>
+                <p>Progress Tracking: We will use an agent that plants completely randomly as a baseline and measure our performace
+                    relative to this</p>
+        </div>
     </div>
 
     <footer class="footer bg-dark p-3" style="width: 100%; position: fixed; bottom: 0;">
