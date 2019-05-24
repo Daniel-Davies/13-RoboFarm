@@ -97,7 +97,8 @@
                 our scoring function. It will do this until convergence. The steps are as follows:
             </p>
             <ul>
-                <li>We initialise 10 random seed locations, stored as (x,z) tuples [Y is implicityly the same as we do no digging]</li>
+                <li>We initialise 10 random seed locations [this could be any integer value less than the map area], stored as
+                    (x,z) tuples [Y is implicityly the same as we do no digging]</li>
                 <li>For 10 rounds, we do:
                     <ul>
                         <li>score the current seed locations using our scoring function, which essentially measures distance
@@ -221,7 +222,13 @@
             <div class="col-12">
                 <img src="success_rate.PNG" />
             </div>
-            <p>Explanation here</p>
+            <p>The blue bars in the chart above represent the random agent. As you can see, on every trial of the algorithm,
+                it underperformed compared to our algorithm. Interestingly, if we csalculate the average of the scores of
+                the random agent, we get exactly 2 / 10, or 20%, which is very close to the estimated 18% earlier. If we
+                did more trials, we would find that eventually the success rate of the random agent would tend to 18%.
+            </p>
+            <p>Our genetic algorithm was very successful in this case, mostly planting 10 seeds in the optimal zone. The average
+                overall came to roughly 9.2/10.</p>
             <p>It is also interesting to see how to seeds converge on the water block. Below is a charting of different stages
                 of the algorithm and how it progresses</p>
             <div class="row col-12">
@@ -276,7 +283,7 @@
                 <a href="https://en.wikipedia.org/wiki/Genetic_algorithm">here</a>
             </p>
 
-            
+
         </div>
     </div>
 
