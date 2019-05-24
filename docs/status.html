@@ -42,7 +42,7 @@
         </div>
     </nav>
 
-    <div class="container col-12 d-flex justify-content-center mx-2">
+    <div class="container col-12 d-flex justify-content-center ">
         <div class="col-8">
             <h1>Summary of the project</h1>
             <p>
@@ -71,7 +71,7 @@
 
             <h1>Approach</h1>
             <p>We will be using a Genetic Algorithm to solve this problem, which essentially involves mapping the problem to
-                a graph search problem and following the procedure for a genetic algorithm to allow our seeds to converge
+                a graph search problem and following a procedure of breeding successful states to allow our seeds to converge
                 onto an optimal location.
             </p>
             <h5>Setup</h5>
@@ -129,9 +129,9 @@
                 </li>
                 <li>Our agent will compare this 18% success rate to its genetic algorithm, evaluated below</li>
             </ul>
-            <h5>Algorithm</h5>
+            <h5>The Algorithm</h5>
             <p>Our algorithm essentially simulates placing the seeds on the map, and evaluates this potential placement using
-                our scoring function. It will do this until convergence. The steps are as follows:
+                our scoring function. It will do this until convergence. The steps to our genetic algorithm are as follows:
             </p>
             <ul>
                 <li>We initialise 10 random seed locations [this could be any integer value less than the map area], stored as
@@ -151,8 +151,9 @@
                         </li>
                         <li>The 5 best seed locations are taken along with the new 5 children, ready for the next round. The
                             worst 5 "die"</li>
-                        <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds [[-3 to
-                            3],[-3 to 3]] to a seed location</li>
+                        <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds (x,z) to a seed location
+                            where x and z are both in the range of [-3,3]
+                        </li>
                     </ul>
                 </li>
                 <li>At the end of the generation of seed locations, we have a list of (x,z) pairs to place our seeds. We then
@@ -235,7 +236,10 @@
                         for each of the seed locations based on how quickly/ how well the plant actually grew.
                     </p>
                     <p>So our score function would become the reaction of the real minecraft environment, meaning that we get
-                        a more accurate model of where is best to plant in our world</p>
+                        a more accurate model of where is best to plant in our world. This also has the implication that the score
+                        function becomes <b>generic</b> aka it doesn't have to be rewritten for every map, since the actual environment
+                        gives us feedback
+                    </p>
                     <b>Challenges</b>
                     <p>The malmo API does present a number of challenges when considering our project scope/ farming in minecraft
                         in general. These include:</p>
