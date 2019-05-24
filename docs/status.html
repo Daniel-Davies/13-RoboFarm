@@ -93,11 +93,11 @@
                 <li>Plant using our algorithm, which is discussed below, and evaluated against this random agent</li>
             </ul>
             <h5>Algorithm</h5>
-            <p>Our algorithm will essentially simulate placing the seeds on the map, and evaluate this potential placement using
+            <p>Our algorithm essentially simulates placing the seeds on the map, and evaluates this potential placement using
                 our scoring function. It will do this until convergence. The steps are as follows:
             </p>
             <ul>
-                <li>We initialise 10 random seed locations, stored as (x,z) tuples</li>
+                <li>We initialise 10 random seed locations, stored as (x,z) tuples [Y is implicityly the same as we do no digging]</li>
                 <li>For 10 rounds, we do:
                     <ul>
                         <li>score the current seed locations using our scoring function, which essentially measures distance
@@ -276,62 +276,7 @@
                 <a href="https://en.wikipedia.org/wiki/Genetic_algorithm">here</a>
             </p>
 
-            <h1>Goals/Evaluation</h1>
-
-            <p>We have prepared a number of goals to reach:</p>
-            <ul>
-                <li>MVP: We want the AI to realise that planting on hydrated farmland is best, and avoid planting on rock or
-                    other kinds of unplantable materials. This should guarantee us a "better than random" result</li>
-                <li>We would also like our algorithm to cluster seeds together on optimal land, since clustering plants together
-                    in rows/ columns also means they will grow faster</li>
-                <li>Finally we will try and allow the AI to fix any plants that could not be planted on optimal soil by use of
-                    bone meal etc to speed up growth</li>
-            </ul>
-            <p>The more points we can cross off this list, the better we can say an agent is at farming, and the more trust
-                a user would have in letting the AI manage the seeds a user has to reap rewards over a number of minecraft
-                days.
-            </p>
-
-            <p>Input to our AI: The malmo API will let us generate worlds with a number of terrains, by paramters that we specify.
-                Because we specify the parameters, we will have a mapping of the minecraft world we are in to give a sense
-                of navigation to our agent.</p>
-
-            <p>
-                Output: at each round, the agent will produce a set of locations on the map that it believes to be optimal points for planting
-                the seeds
-            </p>
-
-            <p>
-                Applications: Essentially, the project allows a player to automate farming, which can take a long time in minecraft.
-            </p>
-
-            <P>
-                Now that we have a goal and some variables, we can describe some stages:
-            </P>
-
-            <p>
-                Stage one: how do we get our data/ input from the world?
-            </p>
-
-            <p>
-                Malmo will provide us with the methods needed to read the world. This will be especially important to start when we teach
-                our AI about the terrain that it should plant on. We will most likely initialise a world conatining a number
-                of terrains, e.g. Rock, Grass, and Ploughed Grass, and give our agent a list of where each of these blocks
-                are so that it can score each location.
-            </p>
-            <p>The scoring function</p>
-            <p>
-                Initially we would like to keep it simple and leave our scoring function as a representation of how close a block is to water
-                Later on however we would like to actually execute a generation of our genetic algorithm in malmo, then reap
-                the crops at the locations that our AI has chosen, and the amount of wheat we obtain is the score. This should
-                hopefully get better with every round.
-            </p>
-            <p>
-                What to expect: Crops closest to water and torches grow fastest</p>
-            <p>
-                Output: A set of locations that our agent can reap, followed by a collection of wheat</p>
-            <p>Progress Tracking: We will use an agent that plants completely randomly as a baseline and measure our performace
-                relative to this</p>
+            
         </div>
     </div>
 
