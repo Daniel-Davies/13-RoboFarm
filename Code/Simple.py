@@ -349,7 +349,7 @@ while not world_state.has_mission_begun:
 
 print()
 print("Mission running ", end=' ')
-time.sleep(5)
+#time.sleep(5)
 dirt = set()
 rock = set()
 water = set()
@@ -372,6 +372,7 @@ agent_host.sendCommand("pitch 0.5")
 planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
 print(planting_coords)
 
+planting_coords = initialise_planting_coords(10, num_seeds)
 # planting_coords = plant_random(10,10)
 
 planted_indices = []
@@ -381,11 +382,14 @@ for i in range(0, len(planting_coords)):
     if ((x, z) in rock):
         print("Hit rock")
     teleport(agent_host, x, z)
-    time.sleep(2);
+    time.sleep(1);
     agent_host.sendCommand("use 1")
     planted_indices.append(i)
 
-time.sleep(5)
+time.sleep(40)
+print("REMOVE NOW")
+
+'''
 for i in planted_indices:
     x, z = planting_coords[i]
     teleport(agent_host, x, z)
@@ -394,6 +398,8 @@ for i in planted_indices:
     agent_host.sendCommand("attack 1")
     time.sleep(0.1)
     agent_host.sendCommand("attack 0")
+
+'''
 
 '''
 # Loop until mission ends:
@@ -408,5 +414,5 @@ while world_state.is_mission_running:
 print()
 print("Mission ended")
 # Mission has ended.
-agent_host.sendCommand("attack 0")
+#agent_host.sendCommand("attack 0")
 # pitch up etc
