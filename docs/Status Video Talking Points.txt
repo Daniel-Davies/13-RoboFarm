@@ -1,0 +1,48 @@
+Video Script
+
+Problem Description:
+- Finding the optimal places to plant seeds on unseen map for best crop yield
+- Limited to 10 seeds on a 10x10 plot of land
+- Middle plots are hydrated by central water source
+- Crop growth cut at 40 minutes of in-game time
+
+	Factors:
+		-Proximity to water (hydrated farmland)
+		-Light level (torches, sunlight)
+		-Crop formation (single rows encouraged)
+
+Baseline method:
+The benchmark for performance on never before seen land is completely random 
+seed placement.  
+
+Details:
+-Note: Crop growth in Minecraft is probabilistic, meaning that even the best seed
+are not guaranteed to produce crops every time.  To account for this we have averaged
+the yield for seed placements across multiple sample growth periods.
+
+--- Show clip of baseline method growth ---
+--- Show clip of working method growth ---
+
+Approach:
+Our team tackled this problem with genetic algorithms.  The initial population of seeds 
+is random, but after every run a new generation of seed placements is created by 
+crossing the genes of strongly performing seeds of the previous generation.  
+
+-In order to escape local minima, we added mutation logic to rarely shift new seeds one
+square in a random direction 
+-During gene crossing, the new seed placement inherits coordinates from each parent with
+a certain probability, effectively blending the genes that made the original seed 
+successful.  
+-Over the course of 10 simulated generations, the seed placements slowly cluster toward 
+the center of hydrated farmland - the optimal seed placements.
+
+--- Yield graph over 10 full runs
+
+
+Future plans:
+Over the next few weeks we intend to add the more complex and nuanced factors of Minecraft
+farming into our genetic algorithm's logic, such as crop formation, torch placement and
+bonemeal.  After those additions, we will continue to experiment with interesting map
+formations to challenge our algorithm to learn and adapt.
+
+
