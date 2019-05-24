@@ -45,9 +45,19 @@
     <div class="container col-12 d-flex justify-content-center mx-2">
         <div class="col-8">
             <h1>Summary of the project</h1>
-            <p>We are essentially creating an AI to find the best points of farmland on a map to plant wheat crops in. Results
-                from farming in minecraft can vary greatly based on a number of criteria, which our agent will use to evaluate
-                positions on the map, and eventually select the optimum locations for farming. The criteria include:</p>
+            <p>
+                Crop farming in Minecraft can be quite a time consuming process: to get any significant benefit in the game, we have to first
+                find suitable spots for the seeds to grow, and then physically go to each of those locations to plant them.
+                The locations we find, as a human user, may not even be optimal planting positions, especially if the mechanics
+                of minecraft farming aren't known. So to make the process quicker and easier we have made a tool that allows
+                an AI to do the farming process for you and save more time for you to do whatever else you want to do in
+                the game. The final aim of this project is to have an agent that, given a map, and some farmable objects
+                defined by the user (wheat, pumkin seeds etc), will plant the objects for the user in an optimal position.
+            </p>
+            <p>For this MVP version of the project, we are essentially creating a genetic algorithm AI to find the best points
+                of farmland on a map to plant wheat crops in. Results from farming in minecraft can vary greatly based on
+                a number of criteria, which our agent will use to evaluate positions on the map, and eventually select the
+                optimum locations for farming. The criteria include:</p>
             </p>
             <ul>
                 <li>Terrain: which block you place seeds on directly influences crop yield</li>
@@ -56,9 +66,8 @@
                 <li>Material Additions: Materials like Bone Meal can help make crop yield faster</li>
             </ul>
 
-            <p>Given these criteria, we are using a Genetic Algorithm to search for the optimal planting positions for wheat
-                crops in a minecraft world to get a maximum amount of crop yield for a given time frame </p>
-
+            <p>Our agent is tasked with applying these criteria to evaluate locations on the map and efficiently select the
+                best locations for farming</p>
 
             <h1>Approach</h1>
             <p>We will be using a Genetic Algorithm to solve this problem, which essentially involves mapping the problem to
@@ -76,21 +85,49 @@
                     </ol>
                     This has the implication of creating
                     <em>hydrated</em> water from (-4,4) by [aka the "optimal" part of the map and where plants will grow fastest]
-                    and leaving the remaining dirt squares as dry, and non optimal to plant on.
+                    and leaving the remaining dirt squares as dry, and non optimal/ unplantable.
                 </li>
                 <li>The agent is given a range of squares to plant in, which for our purposes, is any of the squares in (-10,10):
                     the agent is successful if he puts a majority of the seeds in the hydrated square region at the end of
                     the algorithm
                 </li>
             </ul>
-            <p>Now our agent is given 10 seeds, and can do one of 2 methods:</p>
+            <p>Now our agent is given 10 seeds, and can follow one of 2 methods:</p>
             <ul>
-                <li>we wrote a function that plants seeds randomly, to measure a baseline performace. In a world of (-10,10)
-                    dirt blocks,discluding the water block at the center, our agent can plant on 21*21 - 1 squares = 440,
-                    of which (-4,4) -> 9*9 - 1 = 80 are plantable. So theoretically, 18% is the random agent success rate
-                    for this map
+                <li>
+                    <p>
+                        We wrote a function that plants seeds randomly, to measure a baseline performace. In a world of (-10,10) dirt blocks,discluding
+                        the water block at the center, our agent can plant on an area of:
+                    </p>
+                    <div class="text-center col-12">
+                        <p>Height: -10 to 10 => 21 blocks
+                            <br/> Width: -10 to 10 => 21 blocks
+                            <br/> Water block at (0,0) => 1 block to remove from the area
+                        </p>
+                    </div>
+                    <div class="text-center col-12">
+                        <p> 21&sup2; - 1 = 440 blocks</p>
+                    </div>
+                    <p>This is the total range that we can plant on</p>
+                    <p>Of these however, only the subset of blocks between (-4,4) are plantable. This leaves an optimal area
+                        of
+                    </p>
+                    <div class="text-center col-12">
+                        <p>Height: -4 to 4 => 9 blocks
+                            <br/> Width: -4 to 4 => 9 blocks
+                            <br/> Water block at (0,0) => 1 block to remove from the area
+                        </p>
+                    </div>
+                    <div class="text-center col-12">
+                        <p> 9&sup2; - 1 = 80 blocks</p>
+                    </div>
+                    <div class="text-center col-12">
+                        440 &divide; 80 <br/>
+                        &#8773; 18%
+                    </div>
+                    <p>So theoretically, 18% is the random agent success rate for this map</p>
                 </li>
-                <li>Plant using our algorithm, which is discussed below, and evaluated against this random agent</li>
+                <li>Our agent will compare this 18% success rate to its genetic algorithm, evaluated below</li>
             </ul>
             <h5>Algorithm</h5>
             <p>Our algorithm essentially simulates placing the seeds on the map, and evaluates this potential placement using
@@ -122,6 +159,52 @@
                     plant these, and calculate how many were placed in the (-4,4) farmland section
                 </li>
             </ul>
+
+            <h1>Evaluation of the current agent</h1>
+            <p>Below we evaluate our current agent compared to a random agent</p>
+
+            <p>
+                <b>Evaluation Method:</b> Our aim in this section of the project was to beat a random agent with our genetic
+                algorithm. So to test whether we were successful, we:</p>
+            <ul>
+                <li>First ran our random agent for 10 seperate rounds to get a baseline score</li>
+                <li>We then ran our genetic algorithm for 10 seperate rounds to see how the scores compares</li>
+            </ul>
+            <p>The scores are summarsied in the chart below:</p>
+            <div class="col-12">
+                <img src="success_rate.PNG" />
+            </div>
+            <p>The blue bars in the chart above represent the random agent. As you can see, on every trial of the algorithm,
+                it underperformed compared to our algorithm. Interestingly, if we calculate the average of the scores of
+                the random agent, we get exactly 2 / 10, or 20%, which is very close to the estimated 18% earlier. If we
+                did more trials, we would find that eventually the success rate of the random agent would tend to 18%.
+            </p>
+            <p>Our genetic algorithm was very successful in this case, mostly planting 10 seeds in the optimal zone. The average
+                overall came to roughly 9.2/10.</p>
+            <p>It is also interesting to see how to seeds converge on the water block. Below is a charting of different stages
+                of the algorithm and how it progresses</p>
+            <div class="row col-12">
+                <div class="col-6 p-0">
+                    <img src="round_1.PNG" class="col-12 m-0 p-0">
+                    <p class="text-center">Round 1</p>
+                </div>
+                <div class="col-6 p-0">
+                    <img src="round_3.PNG" class="col-12 m-0 p-0">
+                    <p class="text-center">Round 3</p>
+                </div>
+            </div>
+            <div class="row col-12">
+                <div class="col-6 p-0">
+                    <img src="round_6.PNG" class="col-12 m-0 p-0">
+                    <p class="text-center">Round 6</p>
+                </div>
+                <div class="col-6 p-0">
+                    <img src="round_8.PNG" class="col-12 m-0 p-0">
+                    <p class="text-center">Round 8</p>
+                </div>
+            </div>
+
+            <p>By round 8 of 10 the seeds had converged</p>
 
             <h1>Remaining Goals and Challenges</h1>
             <p>At the moment we have a very basic algorithm that will give us a better score than randomly placing seeds, but
@@ -162,7 +245,7 @@
                             rate of the growth at a particular square, either the crop has grown or it hasn't, as far as
                             the game is concerned when reaping the crops, meaning that rate of growth is difficult/ impossible
                             to obtain with just the in-game APIs, meaning we would need some kind of computer vision solution
-                            to find whether one plant has outgrown another (unless one of the plants has grown and one hasn't).
+                            to find whether one plant has outgrown another (unless one of the plants has grown fully and one hasn't).
                         </li>
                         <li>One of the biggest problems is planting and reaping consistently: we have noticed that, using the
                             current teleport function, planting a seed on a square and then trying to reap it later from
@@ -207,52 +290,6 @@
                 </li>
 
             </ul>
-
-            <h1>Evaluation of the current agent</h1>
-            <p>Below we evaluate our current agent compared to a random agent</p>
-
-            <p>
-                <b>Evaluation Method:</b> Our aim in this section of the project was to beat a random agent with our genetic
-                algorithm. So to test whether we were successful, we:</p>
-            <ul>
-                <li>First ran our random agent for 10 seperate games to get a baseline score</li>
-                <li>We then ran our genetic algorithm for 10 seperate rounds to see how the scores compares</li>
-            </ul>
-            <p>The scores are summarsied in the chart below:</p>
-            <div class="col-12">
-                <img src="success_rate.PNG" />
-            </div>
-            <p>The blue bars in the chart above represent the random agent. As you can see, on every trial of the algorithm,
-                it underperformed compared to our algorithm. Interestingly, if we csalculate the average of the scores of
-                the random agent, we get exactly 2 / 10, or 20%, which is very close to the estimated 18% earlier. If we
-                did more trials, we would find that eventually the success rate of the random agent would tend to 18%.
-            </p>
-            <p>Our genetic algorithm was very successful in this case, mostly planting 10 seeds in the optimal zone. The average
-                overall came to roughly 9.2/10.</p>
-            <p>It is also interesting to see how to seeds converge on the water block. Below is a charting of different stages
-                of the algorithm and how it progresses</p>
-            <div class="row col-12">
-                <div class="col-6 p-0">
-                    <img src="round_1.PNG" class="col-12 m-0 p-0">
-                    <p class="text-center">Round 1</p>
-                </div>
-                <div class="col-6 p-0">
-                    <img src="round_3.PNG" class="col-12 m-0 p-0">
-                    <p class="text-center">Round 3</p>
-                </div>
-            </div>
-            <div class="row col-12">
-                <div class="col-6 p-0">
-                    <img src="round_6.PNG" class="col-12 m-0 p-0">
-                    <p class="text-center">Round 6</p>
-                </div>
-                <div class="col-6 p-0">
-                    <img src="round_8.PNG" class="col-12 m-0 p-0">
-                    <p class="text-center">Round 8</p>
-                </div>
-            </div>
-
-            <p>By round 8 of 10 the seeds had converged</p>
 
             <h1>Related Resources on Genetic Algorithms</h1>
             <p>Below is a list of resources we found useful when researching Genetic Algorithms
