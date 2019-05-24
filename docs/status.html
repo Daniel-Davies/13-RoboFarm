@@ -122,8 +122,8 @@
                         <p> 9&sup2; - 1 = 80 blocks</p>
                     </div>
                     <div class="text-center col-12">
-                        440 &divide; 80 <br/>
-                        &#8773; 18%
+                        440 &divide; 80
+                        <br/> &#8773; 18%
                     </div>
                     <p>So theoretically, 18% is the random agent success rate for this map</p>
                 </li>
@@ -151,8 +151,8 @@
                         </li>
                         <li>The 5 best seed locations are taken along with the new 5 children, ready for the next round. The
                             worst 5 "die"</li>
-                        <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds (x,z) to a seed location
-                            where x and z are both in the range of [-3,3]
+                        <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds (x,z)
+                            to a seed location where x and z are both in the range of [-3,3]
                         </li>
                     </ul>
                 </li>
@@ -182,6 +182,14 @@
             </p>
             <p>Our genetic algorithm was very successful in this case, mostly planting 10 seeds in the optimal zone. The average
                 overall came to roughly 9.2/10.</p>
+            <p>A further piece of information we gathered was how the global scores vary with the round. This gives us an overall
+                picture of the convergence of the algorithm
+            </p>
+            <div class="col-12">
+                <img src="scoresAnalysis.PNG" />
+            </div>
+            <p>We see that, as we map the scores per round onto the chart, in the genral case it will steadily rise and then
+                finally by round 9/ round 10, we get very little difference</p>
             <p>It is also interesting to see how to seeds converge on the water block. Below is a charting of different stages
                 of the algorithm and how it progresses</p>
             <div class="row col-12">
@@ -236,9 +244,10 @@
                         for each of the seed locations based on how quickly/ how well the plant actually grew.
                     </p>
                     <p>So our score function would become the reaction of the real minecraft environment, meaning that we get
-                        a more accurate model of where is best to plant in our world. This also has the implication that the score
-                        function becomes <b>generic</b> aka it doesn't have to be rewritten for every map, since the actual environment
-                        gives us feedback
+                        a more accurate model of where is best to plant in our world. This also has the implication that
+                        the score function becomes
+                        <b>generic</b> aka it doesn't have to be rewritten for every map, since the actual environment gives
+                        us feedback
                     </p>
                     <b>Challenges</b>
                     <p>The malmo API does present a number of challenges when considering our project scope/ farming in minecraft
@@ -249,7 +258,8 @@
                             rate of the growth at a particular square, either the crop has grown or it hasn't, as far as
                             the game is concerned when reaping the crops, meaning that rate of growth is difficult/ impossible
                             to obtain with just the in-game APIs, meaning we would need some kind of computer vision solution
-                            to find whether one plant has outgrown another (unless one of the plants has grown fully and one hasn't).
+                            to find whether one plant has outgrown another (unless one of the plants has grown fully and
+                            one hasn't).
                         </li>
                         <li>One of the biggest problems is planting and reaping consistently: we have noticed that, using the
                             current teleport function, planting a seed on a square and then trying to reap it later from
