@@ -54,7 +54,7 @@
                 of minecraft farming aren't known. So to make the process quicker and easier we have made a tool that allows
                 an AI to do the farming process for you and save more time for you to do whatever else you want to do in
                 the game. The final aim of this project is to have an agent that, given a map, and some farmable objects
-                defined by the user (wheat, pumkin seeds etc), will plant the objects for the user in an optimal position.
+                defined by the user (wheat, pumpkin seeds etc), will plant the objects for the user in an optimal position.
             </p>
             <p>For this MVP version of the project, we are essentially creating a genetic algorithm AI to find the best points
                 of farmland on a map to plant wheat crops in. Results from farming in minecraft can vary greatly based on
@@ -86,10 +86,10 @@
                         <li>Dirt around the water from (-10,10) in the (x,z) directions</li>
                     </ol>
                     This has the implication of creating
-                    <em>hydrated</em> water from (-4,4) by [aka the "optimal" part of the map and where plants will grow fastest]
+                    <em>hydrated</em> water from (-4,4) by [AKA the "optimal" part of the map and where plants will grow fastest]
                     and leaving the remaining dirt squares as dry, and non optimal/ unplantable.
                 </li>
-                <li>The agent is given a range of squares to plant in, which for our purposes, is any of the squares in (-10,10):
+                <li>The agent is given a range of squares to plant in, which for our purposes, are any of the squares in (-10,10):
                     the agent is successful if he puts a majority of the seeds in the hydrated square region at the end of
                     the algorithm
                 </li>
@@ -98,7 +98,7 @@
             <ul>
                 <li>
                     <p>
-                        We wrote a function that plants seeds randomly, to measure a baseline performace. In a world of (-10,10) dirt blocks,discluding
+                        We wrote a function that plants seeds randomly, to measure a baseline performance. In a world of (-10,10) dirt blocks,discluding
                         the water block at the center, our agent can plant on an area of:
                     </p>
                     <div class="text-center col-12">
@@ -111,7 +111,7 @@
                         <p> 21&sup2; - 1 = 440 blocks</p>
                     </div>
                     <p>This is the total range that we can plant on</p>
-                    <p>Of these however, only the subset of blocks between (-4,4) are plantable. This leaves an optimal area
+                    <p>Of these however, only a subset of blocks between (-4,4) are plantable. This leaves an optimal area
                         of
                     </p>
                     <div class="text-center col-12">
@@ -137,8 +137,8 @@
             </p>
             <ul>
                 <li>We initialise 10 random seed locations [this could be any integer value less than the map area], stored as
-                    (x,z) tuples [Y is implicityly the same as we do no digging]</li>
-                <li>For 10 rounds, we do:
+                    (x,z) tuples [Y is implicitly the same as we do no digging]</li>
+                <li>For 10 rounds, we:
                     <ul>
                         <li>score the current seed locations using our scoring function, which essentially measures distance
                             to the nearest water block</li>
@@ -147,10 +147,8 @@
                         </li>
                         <li>
                             using the same 5 best seeds, generate 5 new children seeds by using their attributes. In this simple version of our algorithm,
-                            we essentially randomly take the x and z co-ordinate from either of the parents. This is a simple
-                            approach, but is quite effective is generating good results, accoring to
-                            <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a>
-                        </li>
+                            we essentially randomly take the x and z coordinate from either of the parents. This is a simple
+                            approach, but is quite effective is generating good results.                    </li>
                         <li>The 5 best seed locations are taken along with the new 5 children, ready for the next round. The
                             worst 5 "die"</li>
                         <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds (x,z)
@@ -173,12 +171,11 @@
                 <li>First ran our random agent for 10 seperate rounds to get a baseline score</li>
                 <li>We then ran our genetic algorithm for 10 seperate rounds to see how the scores compares</li>
             </ul>
-            <p>The scores are summarsied in the chart below:</p>
+            <p>The scores are summarised in the chart below:</p>
             <div class="col-12">
                 <img src="success_rate.PNG" />
             </div>
-            <p>The blue bars in the chart above represent the random agent. As you can see, on every trial of the algorithm,
-                it underperformed compared to our algorithm. Interestingly, if we calculate the average of the scores of
+            <p>The blue bars in the chart above represent the random agent. As you can see, every trial of the baseline algorithm, underperformed compared to our genetic algorithm. Interestingly, if we calculate the average of the scores of
                 the random agent, we get exactly 2 / 10, or 20%, which is very close to the estimated 18% earlier. If we
                 did more trials, we would find that eventually the success rate of the random agent would tend to 18%.
             </p>
@@ -190,7 +187,7 @@
             <div class="col-12">
                 <img src="scoresAnalysis.PNG" />
             </div>
-            <p>We see that, as we map the scores per round onto the chart, in the genral case it will steadily rise and then
+            <p>We see that, as we map the scores per round onto the chart, in the general case it will steadily rise and then
                 finally by round 9/ round 10, we get very little difference</p>
             <p>It is also interesting to see how to seeds converge on the water block. Below is a charting of different stages
                 of the algorithm and how it progresses</p>
@@ -215,7 +212,7 @@
                 </div>
             </div>
 
-            <p>By round 8 of 10 the seeds had converged</p>
+            <p>By round 8 of 10 the seeds have converged</p>
 
             <h1>Remaining Goals and Challenges</h1>
             <p>At the moment we have a very basic algorithm that will give us a better score than randomly placing seeds, but
@@ -231,7 +228,7 @@
                     </p>
                     <p>
                         So essentially this relies entirely on our score function: if the scoring function models the map sufficiently well, the
-                        plants will grow optimally. However, this doesnt scale/ would be quite complex to build. For now,
+                        plants will grow optimally. However, this does not scale/ would be quite complex to build. For now,
                         we can only model distances from interesting squares, for example, the score we are currently using
                         is distance from the nearest water block. But minecraft farming depends on much more than this: a
                         torch in the neighbouring square to a crop will make it grow faster, which our score function will
@@ -248,7 +245,7 @@
                     <p>So our score function would become the reaction of the real minecraft environment, meaning that we get
                         a more accurate model of where is best to plant in our world. This also has the implication that
                         the score function becomes
-                        <b>generic</b> aka it doesn't have to be rewritten for every map, since the actual environment gives
+                        <b>generic</b> AKA it does not have to be rewritten for every map, since the actual environment gives
                         us feedback
                     </p>
                     <b>Challenges</b>
@@ -265,7 +262,7 @@
                         </li>
                         <li>One of the biggest problems is planting and reaping consistently: we have noticed that, using the
                             current teleport function, planting a seed on a square and then trying to reap it later from
-                            that same sqaure doesnt always work, because items are thrust into the air when reaped. To mitigate
+                            that same square doesnt always work, because items are thrust into the air when reaped. To mitigate
                             this, we could make the player move around the square the plant was reaped in, so that the agent
                             is more likely to pick up the crop.
                         </li>
@@ -274,7 +271,7 @@
                 <li>
                     <b>Map Exploration</b>
                     <p>Inherently, the seeds are generated from the best seeds of the current round: so they will converge on
-                        the point(s) found by the best seed (s) in the first few rounds. </p>
+                        the point(s) found by the best seed(s) in the first few rounds. </p>
                     <p>But what happens if all of the seeds are generated in a very bad location?</p>
                     <p>Currently to prevent this from happending, some "variance" vector is added to a point at the end of each
                         round, which we included as the "mutation" aspect of the genetic algorithm with the hope of exploring
@@ -284,7 +281,7 @@
                     </p>
                     <p>To solve this we will implement a smarter mutation algorithm: one improvement we have been considering
                         is crossing over (breeding) two points from our "elite" set that are a maximum distance away, then
-                        taking the x co-ordiante from one parent and the y co-ordinate from the other parent. This means
+                        taking the x coordinate from one parent and the y coordinate from the other parent. This means
                         that the seed ends up in a totally new place for at least some seed generations, especially at the
                         starting rounds.
                     </p>
@@ -318,7 +315,7 @@
             <p>Visit
                 <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a> to see the article</p>
             <h5>Video Demonstration</h5>
-            <p>The below video shows a nice visual animation on how geentic algorithms repeatedly take the best performing samples
+            <p>The below video shows a nice visual animation on how genetic algorithms repeatedly take the best performing samples
                 from the "gene pool" to eventually converge on a population that each finds itself on some optimal point.
             </p>
             <p>See the video on youtube
