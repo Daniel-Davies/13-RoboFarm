@@ -26,6 +26,7 @@ import MalmoPython
 import os
 import sys
 import time
+import json
 import random
 import collections
 
@@ -71,7 +72,7 @@ def generateMissionXML(inputWorld):
         <AgentSection mode="Survival">
             <Name>Odie</Name>
             <AgentStart>
-                <Placement x="0.5" y="227.0" z="0.5"/>
+                <Placement x="0.5" y="227.0" z="0.5" yaw="90"/>
                 <Inventory>
                     <InventoryItem slot="0" type="wheat_seeds" quantity="''' + str(num_seeds) + '''"/>
                 </Inventory>
@@ -86,6 +87,12 @@ def generateMissionXML(inputWorld):
                     <Range name="entities" xrange="40" yrange="40" zrange="40"/>
                 </ObservationFromNearbyEntities>
                 <ObservationFromFullInventory/>
+                <ObservationFromGrid>
+                    <Grid name="crops20x20">
+                    <min x="-10" y="0" z="-10"/>
+                    <max x="10" y="0" z="10"/>
+                    </Grid>
+                </ObservationFromGrid>
                 <AgentQuitFromCollectingItem>
                     <Item type="rabbit_stew" description="Supper's Up!!"/>
                 </AgentQuitFromCollectingItem>
@@ -111,6 +118,10 @@ missionXML_hell = generateMissionXML('''
                     <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
                     ''')
 
+#                 <DrawCuboid x1="-10" y1="226" z1="-10" x2="-10" y2="226" z2="-10" type="grass" />
+#                 <DrawCuboid x1="10" y1="226" z1="10" x2="10" y2="226" z2="10" type="grass" />
+#                 <DrawCuboid x1="9" y1="226" z1="10" x2="9" y2="226" z2="10" type="grass" />S
+
 missionXML_surrounding_water = generateMissionXML(''' 
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />                    
@@ -126,65 +137,8 @@ missionXML_corner_water = generateMissionXML('''
                     <DrawCuboid x1="15" y1="226" z1="-15" x2="20" y2="226" z2="-20" type="water" />
                     ''')
 
-missionXML_desert = '''<?xml version="1.0" encoding="UTF-8" ?>
-    <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <About>
-            <Summary></Summary>
-        </About>
-
-        <ModSettings>
-            <MsPerTick>1</MsPerTick>
-        </ModSettings>
-
-        <ServerSection>
-            <ServerInitialConditions>
-                <Time>
-                    <StartTime>6000</StartTime>
-                    <AllowPassageOfTime>false</AllowPassageOfTime>
-                </Time>
-                <Weather>clear</Weather>
-                <AllowSpawning>false</AllowSpawning>
-            </ServerInitialConditions>
-            <ServerHandlers>
-                <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;2;,biome_1" />
-                <DrawingDecorator>
-                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
-                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
-                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
-                    <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
-                </DrawingDecorator>
-                <ServerQuitWhenAnyAgentFinishes />
-            </ServerHandlers>
-        </ServerSection>
-
-        <AgentSection mode="Survival">
-            <Name>Odie</Name>
-            <AgentStart>
-                <Placement x="0.5" y="227.0" z="0.5"/>
-                <Inventory>
-                    <InventoryItem slot="0" type="wheat_seeds" quantity="''' + str(num_seeds) + '''"/>
-                </Inventory>
-            </AgentStart>
-            <AgentHandlers>
-                <ContinuousMovementCommands turnSpeedDegs="480"/>
-                <AbsoluteMovementCommands/>
-                <SimpleCraftCommands/>
-                <MissionQuitCommands/>
-                <InventoryCommands/>
-                <ObservationFromNearbyEntities>
-                    <Range name="entities" xrange="40" yrange="40" zrange="40"/>
-                </ObservationFromNearbyEntities>
-                <ObservationFromFullInventory/>
-                <AgentQuitFromCollectingItem>
-                    <Item type="rabbit_stew" description="Supper's Up!!"/>
-                </AgentQuitFromCollectingItem>
-            </AgentHandlers>
-        </AgentSection>
-
-    </Mission>'''
-
-
-# Create default Malmo objects:
+NUM_ROWS = 10
+NUM_COLS = 10
 
 
 def teleport(agent_host, teleport_x, teleport_z):
@@ -275,6 +229,9 @@ def score_seeds(seed_locations, dirt, rock, water):
     assert (len(water) > 0)
     scores = dict()
 
+    '''
+        Reward hydrated crops
+    '''
     for seed_tup in seed_locations:
         if seed_tup in rock or seed_tup in water:
             # Invalid seed placement -> 0.0 score
@@ -295,18 +252,39 @@ def score_seeds(seed_locations, dirt, rock, water):
                 # Dry farmland -> apply flat penalty.  Minimum score 1.0
                 scores[seed_tup] = 1.0 if (raw_score - 2.0) < 1.0 else raw_score - 2.0
 
-    '''
-    for i in range(len(seed_locations)):
-        scores[seed_locations[i]] = 0
 
-    for f in range(len(seed_locations)):
-        x,z = seed_locations[f]
-
-        for i in range(-1,2):
-            for j in range(-1,2):
-                if(((x+i),(z+j)) in water and not(i == j)):
-                    scores[(x,z)] = scores[(x,z)] + 1
     '''
+         Reward crops planted consecutively in columns
+    '''
+    columns = collections.defaultdict(list)
+    for seed_tup in seed_locations:
+        columns[seed_tup[1]].append(seed_tup)
+
+    for col_list in columns.values():
+        in_order = sorted(col_list, key=(lambda x : x[0]))
+
+        max_consec = 1
+        current_consec = 1
+        seeds_set = set()
+        max_seed_set = set()
+        for i in range(-len(in_order), len(in_order)-1):
+            if (in_order[i][0] + 1) == in_order[i+1][0]:
+                current_consec += 1
+                if current_consec > max_consec:
+                    max_consec = current_consec
+                    max_seed_set = seeds_set
+                seeds_set.add(in_order[i+1])
+            else:
+                current_consec = 1
+                seeds_set = set()
+                seeds_set.add(in_order[i])
+
+        # Add extra score to any consecutive sequence in a column size 3 or more
+        if max_consec >= 3:
+            for seed_tup in max_seed_set:
+                scores[seed_tup] += 0.5
+
+    print(seed_locations)
     #print(scores)
     return scores.items()
 
@@ -438,15 +416,45 @@ while not world_state.has_mission_begun:
     for error in world_state.errors:
         print("Error:", error.text)
 
-teleport(agent_host, 4, 4)
+time.sleep(1)
+#agent_host.sendCommand("pitch 0.5")
 
 print()
-print("Mission running ", end=' ')
-time.sleep(5)
+obs = agent_host.getWorldState().observations
+for item in obs:
+    js_dict = json.loads(item.text)
+    #print(js_dict['crops20x20'])
+
+print()
+print()
+
+#print("LEN ", len(js_dict['crops20x20']))
 dirt = set()
 rock = set()
 water = set()
 
+raw_index = 0
+for block in js_dict['crops20x20']:
+    row = int(raw_index / 21)-10
+    col = (raw_index % 21)-10
+    raw_index += 1
+
+    if block == 'dirt' or block == 'farmland':
+        dirt.add((row, col))
+    elif block == 'stone':
+        rock.add((row, col))
+    elif block == 'water':
+        water.add((row, col))
+
+
+time.sleep(2)
+teleport(agent_host, 4, 4)
+
+print("Mission running ", end=' ')
+
+
+teleport(agent_host,2,2)
+'''
 for i in range(-10, 11):
     for j in range(-10, 11):
         dirt.add((i, j))
@@ -459,8 +467,9 @@ for i in water:
 dirt = list(dirt)
 rock = list(rock)
 water = list(water)
-
+'''
 agent_host.sendCommand("pitch 0.5")
+time.sleep(5)
 
 planting_coords = []
 scoresVal = []
