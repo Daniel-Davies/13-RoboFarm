@@ -39,8 +39,8 @@ else:
 # More interesting generator string: "3;7,44*49,73,35:1,159:4,95:13,35:13,159:11,95:10,159:14,159:6,35:6,95:6;12;"
 
 num_seeds = 10
-# forceReset="true"
-missionXML_hell = '''<?xml version="1.0" encoding="UTF-8" ?>
+def generateMissionXML(inputWorld):
+    generatedMissionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
     <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <About>
             <Summary></Summary>
@@ -62,10 +62,7 @@ missionXML_hell = '''<?xml version="1.0" encoding="UTF-8" ?>
             <ServerHandlers>
                 <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;8;,biome_1" />
                 <DrawingDecorator>
-                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
-                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
-                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
-                    <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
+                    '''+ inputWorld + '''
                 </DrawingDecorator>
                 <ServerQuitWhenAnyAgentFinishes />
             </ServerHandlers>
@@ -96,6 +93,38 @@ missionXML_hell = '''<?xml version="1.0" encoding="UTF-8" ?>
         </AgentSection>
 
     </Mission>'''
+    return generatedMissionXML
+
+missionXML_split_water = generateMissionXML(
+''' 
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
+                    <DrawCuboid x1="-25" y1="226" z1="-25" x2="25" y2="226" z2="25" type="farmland" />
+                    <DrawCuboid x1="-25" y1="226" z1="20" x2="-20" y2="226" z2="25" type="water" />
+                    <DrawCuboid x1="20" y1="226" z1="-20" x2="25" y2="226" z2="-25" type="water" />
+                    ''')
+
+missionXML_hell = generateMissionXML(''' 
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
+                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
+                    <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
+                    ''')
+
+missionXML_surrounding_water = generateMissionXML(''' 
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="water" />                    
+                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
+                    <DrawCuboid x1="-2" y1="226" z1="-2" x2="2" y2="226" z2="2" type="stone" />
+                    ''')
+
+#point will be to restrict generation of seeds to one corner only
+missionXML_corner_water = generateMissionXML(''' 
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
+                    <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
+                    <DrawCuboid x1="-20" y1="226" z1="-20" x2="20" y2="226" z2="20" type="farmland" />
+                    <DrawCuboid x1="15" y1="226" z1="-15" x2="20" y2="226" z2="-20" type="water" />
+                    ''')
 
 missionXML_desert = '''<?xml version="1.0" encoding="UTF-8" ?>
     <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -175,12 +204,12 @@ def plant_random(mapsize, num_seeds):
     return planting
 
 
-def initialise_planting_coords(mapsize, num_seeds):
+def initialise_planting_coords(mapsize, num_seeds, water):
     seed_locations = []
     while (True):
         x = random.randint(-mapsize, mapsize)
         y = random.randint(-mapsize, mapsize)
-        if ((x, y) not in seed_locations):
+        if ((x, y) not in seed_locations and (x,y) not in water):
             seed_locations.append((x, y))
         if (len(seed_locations) == num_seeds):
             break
@@ -195,7 +224,7 @@ def breed(parent1, parent2):
     return ((parents[x])[0], (parents[y])[1])
 
 
-def cross_over(best):
+def cross_over(best, water):
     # return a list of children
     best_tuples = []
     for i in best:
@@ -206,7 +235,7 @@ def cross_over(best):
         parent2 = best[random.randint(0, len(best) - 1)]
         new_coord = breed(parent1, parent2)
         while (True):
-            if (new_coord in best_tuples or new_coord in newchilren):
+            if (new_coord in best_tuples or new_coord in newchilren or new_coord in water):
                 x, z = new_coord
                 x = x + 1
                 z = z - 1
@@ -218,13 +247,16 @@ def cross_over(best):
     return newchilren
 
 
-def mutate(coordinate):
-    x, y = coordinate
-    offsetX = random.randint(-3, 3)
-    offsetY = random.randint(-3, 3)
-    x = x + offsetX
-    y = y + offsetY
-    return (x, y)
+def mutate(coordinate, round_num, mapsize):
+    if (round_num < (10-5)):
+        x, y = coordinate
+        offsetX = random.randint(-mapsize+round_num, mapsize-round_num)
+        offsetY = random.randint(-mapsize+round_num, mapsize-round_num)
+        x = x + offsetX
+        y = y + offsetY
+        return (x, y)
+    else:
+        return coordinate
 
 
 def select_elite_seeds(scores_tuples):
@@ -275,38 +307,94 @@ def score_seeds(seed_locations, dirt, rock, water):
                 if(((x+i),(z+j)) in water and not(i == j)):
                     scores[(x,z)] = scores[(x,z)] + 1
     '''
-    print(scores)
+    #print(scores)
     return scores.items()
 
+def calculateOptimalRange():
+    optimal = set()
+    for i in range(-4, 5):
+        for j in range(-4, 5):
+            optimal.add((i, j))
+    return optimal
+
+def inRange(optimal, point):
+    return (point in optimal)
+
+def calculateVariance(scoresHistory):
+    if(len(scoresHistory) < 10):
+        return 10
+    previous10 = scoresHistory[len(scoresHistory)-10:]   
+    listAvg = sum(previous10) / len(previous10)
+    differences = list(map(lambda x: abs(x - listAvg), previous10))
+    unreasonableVariations = len([x for x in differences if (x > 5)])
+    return unreasonableVariations
+
+def shouldLoopBreak(varianceList):
+    if(len(varianceList) < 10):
+        return False
+    previous10 = varianceList[len(varianceList)-10:]
+
+    return (len([x for x in previous10 if (x < 5)]) > 5)
+
+
+def scoreInRange(coords):
+    return sum(map(lambda x: inRange(calculateOptimalRange(), x), coords))
 
 def getBestPlantingCoords(dirt, rock, water, num_seeds):
-    planting_coords = initialise_planting_coords(10, num_seeds)
-
+    planting_coords = initialise_planting_coords(10, num_seeds, water)
+    print()
+    #print("Round 1")
+    #print(planting_coords)
     # for now lets do 10 rounds
-    for i in range(10):
+    initialRounds = 30
+    scoresHistory = []
+    maxScore = 0
+    maxAtRound = 0
+    maxConfiguration = planting_coords
+
+    unreasonableVariations = []
+    for loopVal in range(initialRounds):
         scores = score_seeds(planting_coords, dirt, rock, water)  # as a
+        #print("Scores_" + str(loopVal) + " = " + str([i[1] for i in scores]))
         planting_coords = []
+
         scores = sorted(scores, key=lambda x: x[1])[::-1]
+
+        scoresHistory.append(sum([x[1] for x in scores]))
+
+        if (sum([x[1] for x in scores]) > maxScore):
+            maxScore = sum([x[1] for x in scores])
+            maxAtRound = loopVal
+            maxConfiguration = planting_coords
 
         best = select_elite_seeds(scores)
 
         for i in best:
             planting_coords.append(i[0])
 
-        children = cross_over(best)
+        children = cross_over(best, water)
 
         for i in children:
             planting_coords.append(i)
 
-        mutation = random.randint(0, len(planting_coords) - 1)
-        print("----------------------------------")
-        print("The index that is mutated is: " + str(mutation))
-        print(planting_coords)
-        planting_coords[mutation] = mutate(planting_coords[mutation])
-        print(planting_coords)
-        print("----------------------------------")
+        if (loopVal < 5):
+            mutation = None
+            mutated = None
+            while(True):
+                mutation = random.randint(0, len(planting_coords) - 1)
+                print("Pre-mutation: " + str(planting_coords[mutation]))
+                mutated = mutate(planting_coords[mutation], loopVal, 10)
+                print("Post-mutation: " + str(mutated))
+                if not(mutated in planting_coords) and not(mutated in water):
+                    break
+            planting_coords[mutation] = mutated
 
-    return planting_coords
+        unreasonableVariations.append(calculateVariance(scoresHistory));
+        if(shouldLoopBreak(unreasonableVariations)):
+            print("Broken on " + str(loopVal))
+            break
+
+    return maxConfiguration
 
 
 agent_host = MalmoPython.AgentHost()
@@ -320,6 +408,9 @@ except RuntimeError as e:
 if agent_host.receivedArgument("help"):
     print(agent_host.getUsage())
     exit(0)
+
+#teleport him out of water square
+teleport(agent_host,2,2)
 
 my_mission = MalmoPython.MissionSpec(missionXML_hell, True)
 my_mission_record = MalmoPython.MissionRecordSpec()
@@ -347,9 +438,11 @@ while not world_state.has_mission_begun:
     for error in world_state.errors:
         print("Error:", error.text)
 
+teleport(agent_host, 4, 4)
+
 print()
 print("Mission running ", end=' ')
-#time.sleep(5)
+time.sleep(5)
 dirt = set()
 rock = set()
 water = set()
@@ -369,12 +462,21 @@ water = list(water)
 
 agent_host.sendCommand("pitch 0.5")
 
+planting_coords = []
+scoresVal = []
 planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
+print()
 print(planting_coords)
 
-planting_coords = initialise_planting_coords(10, num_seeds)
-# planting_coords = plant_random(10,10)
+scoresVal.append(scoreInRange(planting_coords))
+print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
 
+print(scoresVal)
+
+print("Average is " + str(sum(scoresVal)/len(scoresVal)))
+
+agent_host.sendCommand("pitch 1")
+time.sleep(5)
 planted_indices = []
 for i in range(0, len(planting_coords)):
     x, z = planting_coords[i]
@@ -382,14 +484,11 @@ for i in range(0, len(planting_coords)):
     if ((x, z) in rock):
         print("Hit rock")
     teleport(agent_host, x, z)
-    time.sleep(1);
+    time.sleep(2);
     agent_host.sendCommand("use 1")
     planted_indices.append(i)
 
-time.sleep(40)
-print("REMOVE NOW")
-
-'''
+time.sleep(5)
 for i in planted_indices:
     x, z = planting_coords[i]
     teleport(agent_host, x, z)
@@ -398,8 +497,6 @@ for i in planted_indices:
     agent_host.sendCommand("attack 1")
     time.sleep(0.1)
     agent_host.sendCommand("attack 0")
-
-'''
 
 '''
 # Loop until mission ends:
@@ -414,5 +511,5 @@ while world_state.is_mission_running:
 print()
 print("Mission ended")
 # Mission has ended.
-#agent_host.sendCommand("attack 0")
+agent_host.sendCommand("attack 0")
 # pitch up etc
