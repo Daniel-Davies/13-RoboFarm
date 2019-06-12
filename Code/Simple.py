@@ -248,7 +248,6 @@ def select_weaker_seeds(scores_tuples):
 
 
 def score_seeds(seed_locations, dirt, rock, water):
-    assert (len(water) > 0)
     scores = dict()
 
     '''
@@ -263,7 +262,7 @@ def score_seeds(seed_locations, dirt, rock, water):
             water_distances = []
             for water_tup in water:
                 water_distances.append(hypot(water_tup[0] - seed_tup[0], water_tup[1] - seed_tup[1]))
-            water_dist = min(water_distances)
+            water_dist = min(water_distances) if len(water) > 0 else 0.0
 
             max_distance = sqrt(200)  # sqrt(10^2 + 10^2), will vary based on map size
             raw_score = max_distance - water_dist
