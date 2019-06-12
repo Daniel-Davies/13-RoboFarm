@@ -42,6 +42,44 @@
         </div>
     </nav>
 
+    <div class="container col-12 d-flex justify-content-center ">
+        <div class="col-8">
+            <h1>Video</h1>
+            
+            <div class="d-flex col-12 justify-content-center">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/BOHt7TtoRX0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+
+            <h1>Summary of the project</h1>
+
+            <p>
+                Crop farming in Minecraft can be quite a time consuming process: to get any significant benefit in the game, we have to first
+                find suitable spots for the seeds to grow, and then physically go to each of those locations to plant them.
+                The locations we find, as a human user, may not even be optimal planting positions, especially if the mechanics
+                of minecraft farming aren't known. So to make the process quicker and easier we have made a tool that allows
+                an AI to do the farming process for you and save more time for you to do whatever else you want to do in
+                the game. The final aim of this project is to have an agent that, given a map, and some farmable objects
+                defined by the user (wheat, pumpkin seeds etc), will plant the objects for the user in an optimal position.
+            </p>
+            <p>For this MVP version of the project, we are essentially creating a genetic algorithm AI to find the best points
+                of farmland on a map to plant wheat crops in. Results from farming in minecraft can vary greatly based on
+                a number of criteria, which our agent will use to evaluate positions on the map, and eventually select the
+                optimum locations for farming. The criteria include:</p>
+            </p>
+            <ul>
+                <li>Terrain: which block you place seeds on directly influences crop yield</li>
+                <li>Proximity to water: the closer to a river/water, the faster crops grow</li>
+                <li>Light: even if artificial, more light generally means a higher crop yield</li>
+                <li>Material Additions: Materials like Bone Meal can help make crop yield faster</li>
+            </ul>
+
+            <p>Our agent is tasked with applying these criteria to evaluate locations on the map and efficiently select the
+                best locations for farming</p>
+
+        </div>
+    </div>
+
     <footer class="footer bg-dark p-3" style="width: 100%; position: fixed; bottom: 0;">
         <div class="d-flex justify-content-center">
             <span class="text-white">Created by

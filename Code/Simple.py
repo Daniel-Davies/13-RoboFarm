@@ -39,7 +39,7 @@ else:
 
 # More interesting generator string: "3;7,44*49,73,35:1,159:4,95:13,35:13,159:11,95:10,159:14,159:6,35:6,95:6;12;"
 
-num_seeds = 10
+#num_seeds = 10
 def generateMissionXML(inputWorld):
     generatedMissionXML = '''<?xml version="1.0" encoding="UTF-8" ?>
     <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -74,7 +74,7 @@ def generateMissionXML(inputWorld):
             <AgentStart>
                 <Placement x="0.5" y="227.0" z="0.5" yaw="90"/>
                 <Inventory>
-                    <InventoryItem slot="0" type="wheat_seeds" quantity="''' + str(num_seeds) + '''"/>
+                    <InventoryItem slot="0" type="wheat_seeds" quantity="''' + str(10) + '''"/>
                 </Inventory>
             </AgentStart>
             <AgentHandlers>
@@ -140,6 +140,23 @@ missionXML_corner_water = generateMissionXML('''
 NUM_ROWS = 10
 NUM_COLS = 10
 
+def getAverageEuclidean(pointslist):
+    total = 0
+    for pt in pointslist:
+        total = total + averageEuclideanDist(pt, pointslist)
+    
+    return total / len(pointslist)
+
+
+def averageEuclideanDist(point, pointlist):
+    total = 0
+    for pt in pointlist:
+        xa, ya = point
+        xb, yb = pt
+        dist = sqrt((xa-xb)**2 + (ya-yb)**2)
+        total = total + dist
+    return total / (len(pointlist) - 1)
+
 
 def teleport(agent_host, teleport_x, teleport_z):
     """Directly teleport to a specific position."""
@@ -177,14 +194,19 @@ def breed(parent1, parent2):
 
     return ((parents[x])[0], (parents[y])[1])
 
+breakVals = []
 
-def cross_over(best, water):
+
+def cross_over(best, water, num_seeds):
     # return a list of children
     best_tuples = []
     for i in best:
         best_tuples.append(i[0])
     newchilren = []
-    for i in range(len(best)):
+    genLimit = len(best)
+    if (num_seeds & 1):
+        genLimit = genLimit + 1
+    for i in range(genLimit):
         parent1 = best[random.randint(0, len(best) - 1)]
         parent2 = best[random.randint(0, len(best) - 1)]
         new_coord = breed(parent1, parent2)
@@ -284,10 +306,14 @@ def score_seeds(seed_locations, dirt, rock, water):
             for seed_tup in max_seed_set:
                 scores[seed_tup] += 0.5
 
-    print(seed_locations)
+    #print(seed_locations)
     #print(scores)
     return scores.items()
 
+
+##########################
+####changes based on the map
+##############################
 def calculateOptimalRange():
     optimal = set()
     for i in range(-4, 5):
@@ -320,7 +346,7 @@ def scoreInRange(coords):
 
 def getBestPlantingCoords(dirt, rock, water, num_seeds):
     planting_coords = initialise_planting_coords(10, num_seeds, water)
-    print()
+    #print()
     #print("Round 1")
     #print(planting_coords)
     # for now lets do 10 rounds
@@ -350,7 +376,7 @@ def getBestPlantingCoords(dirt, rock, water, num_seeds):
         for i in best:
             planting_coords.append(i[0])
 
-        children = cross_over(best, water)
+        children = cross_over(best, water, num_seeds)
 
         for i in children:
             planting_coords.append(i)
@@ -360,16 +386,17 @@ def getBestPlantingCoords(dirt, rock, water, num_seeds):
             mutated = None
             while(True):
                 mutation = random.randint(0, len(planting_coords) - 1)
-                print("Pre-mutation: " + str(planting_coords[mutation]))
+                #print("Pre-mutation: " + str(planting_coords[mutation]))
                 mutated = mutate(planting_coords[mutation], loopVal, 10)
-                print("Post-mutation: " + str(mutated))
+                #print("Post-mutation: " + str(mutated))
                 if not(mutated in planting_coords) and not(mutated in water):
                     break
             planting_coords[mutation] = mutated
 
         unreasonableVariations.append(calculateVariance(scoresHistory));
         if(shouldLoopBreak(unreasonableVariations)):
-            print("Broken on " + str(loopVal))
+            #print("Broken on " + str(loopVal))
+            breakVals.append(loopVal)
             break
 
     return maxConfiguration
@@ -473,16 +500,26 @@ time.sleep(5)
 
 planting_coords = []
 scoresVal = []
-planting_coords = getBestPlantingCoords(dirt, rock, water, num_seeds)
-print()
-print(planting_coords)
+
+intemediary = []
+
+#for vary_seeds in range(1000):
+    #planting_coords = getBestPlantingCoords(dirt, rock, water, 10)
+    #intemediary.append(getAverageEuclidean(planting_coords))
+    #print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
+
+#print()
+#print(planting_coords)
+
+planting_coords = getBestPlantingCoords(dirt, rock, water, 10)
+
 
 scoresVal.append(scoreInRange(planting_coords))
 print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
 
-print(scoresVal)
+#print(scoresVal)
 
-print("Average is " + str(sum(scoresVal)/len(scoresVal)))
+#print("Average is " + str(sum(scoresVal)/len(scoresVal)))
 
 agent_host.sendCommand("pitch 1")
 time.sleep(5)
