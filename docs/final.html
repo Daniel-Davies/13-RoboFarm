@@ -45,7 +45,7 @@
     <div class="container col-12 d-flex justify-content-center ">
         <div class="col-8">
             <h1>Video</h1>
-            
+
             <div class="d-flex col-12 justify-content-center">
                 <iframe width="560" height="315" src="https://www.youtube.com/embed/BOHt7TtoRX0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen></iframe>
@@ -56,16 +56,15 @@
             <p>
                 Crop farming in Minecraft can be quite a time consuming process: to get any significant benefit in the game, we have to first
                 find suitable spots for the seeds to grow, and then physically go to each of those locations to plant them.
-                The locations we find, as a human user, may not even be optimal planting positions, especially if the mechanics
-                of minecraft farming aren't known. So to make the process quicker and easier we have made a tool that allows
-                an AI to do the farming process for you and save more time for you to do whatever else you want to do in
-                the game. The final aim of this project is to have an agent that, given a map, and some farmable objects
-                defined by the user (wheat, pumpkin seeds etc), will plant the objects for the user in an optimal position.
+                Even if as a human user we spend a lot of time finding locations, they may not even be optimal planting positions,
+                especially if the mechanics of minecraft farming aren't known. So to make the process quicker and easier
+                we have made a tool that allows an AI to do the farming process for you and save more time for you to do
+                whatever else you want to do in the game.
             </p>
-            <p>For this MVP version of the project, we are essentially creating a genetic algorithm AI to find the best points
-                of farmland on a map to plant wheat crops in. Results from farming in minecraft can vary greatly based on
-                a number of criteria, which our agent will use to evaluate positions on the map, and eventually select the
-                optimum locations for farming. The criteria include:</p>
+
+            <p>While farming in minecraft is quite intuitive, farming successfully and
+                <b>optimally</b> is no easy task. There are countless blogs that can be found explaining to players about the
+                greatly varying results based on a number of criteria. These include:</p>
             </p>
             <ul>
                 <li>Terrain: which block you place seeds on directly influences crop yield</li>
@@ -74,8 +73,478 @@
                 <li>Material Additions: Materials like Bone Meal can help make crop yield faster</li>
             </ul>
 
-            <p>Our agent is tasked with applying these criteria to evaluate locations on the map and efficiently select the
-                best locations for farming</p>
+            <p>So, the final aim of this project was to create an agent such that, given a map and some farmable objects (wheat,
+                pumpkin seeds etc), will plant the objects for the user in an optimal position on the map, based on the researched
+                criteria above. We specifically thought AI algorithms are suited to this problem because, as explained in
+                our approach and evaluation sections below, we can map this to a search style problem that can use genetic
+                algorithms to progressively optimise our score function; completing this process of searching squares, scoring
+                particular squares, and then selecting the best squares as a human user, especially with no knowledge of
+                minecraft farming, would be very time consuming indeed.
+            </p>
+
+            <h1>Approaches</h1>
+
+            <p>We will be using a Genetic Algorithm to solve this problem, which essentially involves mapping the problem to
+                a graph search problem and following a procedure of breeding successful states to allow our seeds to converge
+                onto an optimal location.
+            </p>
+            <p>The graph in this case will be our map: each square is a node in our graph, with each graph node carrying some
+                notion of a score. Optimal zones will carry the highest score, so our problem can be seen abstractly as locating
+                the maximum points on a graph. Visually, it is something like this: </p>
+            <div class="d-flex justify-content-center">
+                <img src='heatmap.png' />
+            </div>
+            <p>So essentially, there are areas that are "hot" (close to water for example) and "cold" (dry dirt), which our
+                algorithm must differentiate</p>
+
+            <h2>Checkpoints</h2>
+            <h4>Baselines</h4>
+            <h5>Setup</h5>
+            <p>To set the agent up with what it needs, we do the following:</p>
+            <ul>
+                <li>First, to create a test environment for our project, we generated a very simple world, which is essentally
+                    a square grid containing:
+                    <ol>
+                        <li>A water square at (0,0)</li>
+                        <li>Dirt around the water from (-10,10) in the (x,z) directions</li>
+                    </ol>
+                    This has the implication of creating
+                    <em>hydrated</em> water from (-4,4) by [AKA the "optimal" part of the map and where plants will grow fastest]
+                    and leaving the remaining dirt squares as dry, and non optimal/ unplantable.
+                </li>
+                <li>The agent is given a range of squares to plant in, which for our purposes, are any of the squares in (-10,10):
+                    the agent is successful if he puts a majority of the seeds in the hydrated square region at the end of
+                    the algorithm
+                </li>
+            </ul>
+            <h5>Baseline 1</h5>
+            <p>As stated in the status report, the absolute benchmark we have used for this project is a random agent. That
+                is, an agent that follows a procedure like so:
+                <br/>
+                <code>Set size &lt- length of side of the map (assuming it is a square)</code>
+                <br/>
+                <code>For i in N seeds</code>
+                <br/>
+                <code><span class="pr-3"></span>Generate (x,z) where x and z are in the range (-size, size)</code>
+                <br/>
+                <code>Evaluate the N seed locations</code>
+                <br/>
+
+            </p>
+            <p>Please see the status report for a mathematical breakdown of this method</p>
+            <p>
+                <b>Why was this method used as the baseline?</b>
+            </p>
+            <p>Firstly, it makes reasonable intuitive sense: for a player who has never played minecraft before and is asked
+                to plant some seeds, it is reasonable to assume that they will essentially begin planting in random locations,
+                trying to learn the rules of the game. Apart from that, it is also important to note:
+            </p>
+            <ul>
+                <li>This needs virtually no startup data: all we need is the size of the map, and we can begin to get details
+                    about the benchmark we should be beating with our algorithm
+                </li>
+                <li>It generlises incredibly well: we can get a benchmark for almost any map by use of this algorithm</li>
+            </ul>
+            <p>The challenge is now to improve the accuracy</p>
+            <h5>Baseline 2/ the MVP/ first test case</h5>
+            <p>After studying genetic algorithms and how they function, we wanted to apply it to a very basic map, with mostly
+                hard coded values binding closely to the current map, to see what kind of improvement we could get over our
+                random algorithm. We ended up with the following procedure:
+            </p>
+            <ul>
+                <li>We initialise 10 random seed locations, stored as (x,z) tuples [Y is implicitly the same as we do no digging]</li>
+                <li>For 10 rounds, we:
+                    <ul>
+                        <li>score the current seed locations using our scoring function, which essentially measures distance
+                            to the nearest water block</li>
+                        <li>take 5 "elite" seeds: that is, the best scoring seeds from the group. These 5 seeds automatically
+                            pass to the next round of seed locations
+                        </li>
+                        <li>
+                            using the same 5 best seeds, generate 5 new children seeds by using their attributes. In this simple version of our algorithm,
+                            we essentially randomly take the x and z coordinate from either of the parents. This is a simple
+                            approach, but is quite effective is generating good results. </li>
+                        <li>The 5 best seed locations are taken along with the new 5 children, ready for the next round. The
+                            worst 5 "die"</li>
+                        <li>Randomly mutate one of the seed locations by adding a mutation vector, which for now, adds (x,z)
+                            to a seed location where x and z are both in the range of [-3,3]
+                        </li>
+                    </ul>
+                </li>
+                <li>At the end of the generation of seed locations, we have a list of (x,z) pairs to place our seeds. We then
+                    plant these, and calculate how many were placed in the (-4,4) farmland section
+                </li>
+            </ul>
+            <p>This left us with an algorithm, currently usable only for the one map, that we could use to compare our genetic
+                algorithm to our random agent with
+            </p>
+            <p>This had the following properties:</p>
+            <ul>
+                <li>The algorithm was evaluated to be highly accurate (see the status report for more details on this benchmark).
+                    We were able to get our success rate to 92% (compred to roughly 30% for the random algorithm) which let
+                    us know we were at least on the right track.
+                </li>
+                <li>This model was very hard to maintain however: the details of where each of the block types (water, dirt etc)
+                    had to be manually fed in to the agent. The number of seeds to plant, as well as the number of rounds
+                    the agent would run for, were all hard coded.
+                </li>
+                <li>This led to the biggest of our concerns: overfitting of our current algorithm to our one particular map instance.</li>
+            </ul>
+            <p>So now, for the final stretch of our project, we wanted to generalise our algorithm to work for any given map.</p>
+            <h5>The Final Algorithm</h5>
+            <ul>
+                <li>We initialise N random seed locations [N could be any integer value less than the map area], stored as (x,z)
+                    tuples [Y, aka depth, is implicitly the same as we do no digging]</li>
+                <li>until convergence, we do:
+                    <ul>
+                        <li>score the current seed locations using our scoring function, which essentially measures distance
+                            to the nearest water block</li>
+                        <li>take 50% of the seeds as "elite" seeds: that is, the best scoring seeds from the group. These 50%
+                            automatically pass to the next round of seed locations
+                        </li>
+                        <li>
+                            using the same best seeds, generate the remaining required 50% new children seeds by using their attributes. For our final
+                            algorithm, we essentially randomly take the x and z coordinate from either of the parents. This
+                            is a simple approach, but is quite effective is generating good results. </li>
+                        <li>The best half of the seed locations are taken along with the newly generated children, ready for
+                            the next round. The worst half "die"</li>
+                        <li>We also randomly mutate one of the new seed locations by adding a mutation vector. The mutation vector
+                            is in the range of [x,z] => [-mapsize to mapsize, -mapsize to mapsize], with the raneg decreasing
+                            by 1 block every round. This continues for 5 rounds, meaning that we get large mutations in the
+                            beginning, used for map exploration, before cutting it off later in the process (under the assumption
+                            that a reasonable spot has been found in those 5 rounds)
+                        </li>
+                    </ul>
+                </li>
+                <li>At the end of the generation of seed locations, we have a list of (x,z) pairs to place our seeds. We then
+                    plant these, and calculate how many were placed in the hydrated farmland section
+                </li>
+            </ul>
+
+            <p>So as you can see, key modifications to this algorithm now include:</p>
+            <ul>
+                <li>The number of seeds is generalised. This means we could experiment with different numbers of seeds to see
+                    how our algorithm would react.
+                </li>
+                <li>
+                    The convergence of the algorithm has now been defined, and is not simply defined to just stop at round 10. See below for
+                    an exact defintion of what convergence means in our algorithm.
+                </li>
+                <li>Mutations have been set up to explore the map far more aggresively: we start with being able to mutate a
+                    seed anywhere in the map, then progressively decrease the range (by 1 unit on x and 1 unit on z) each
+                    round. After 5 rounds, exploration stops, and we attempt to converge on whatever the best points we have
+                    found are,
+                </li>
+            </ul>
+
+            <p>This modification to our algorithm base had the following hopeful properties:</p>
+            <ul>
+                <li>It would be reasonably accurate (better than random) for the maps we give to it</li>
+                <li>It would not not require us to manually specify where each block type was: instead, we would query the world
+                    for a JSON array corresponding to the block types at each position
+                </li>
+                <li>It would not overfit onto properties of our initial test map</li>
+            </ul>
+
+            <h5>What is convergence?</h5>
+            <p>Convrgence in our algorithm was a little harder to define: initially we believed that it would be enough to simply
+                check to see if our score was beginning to balance out: that is, if the rate of change of the score had decreased
+                below a threshold, we would stop.
+            </p>
+            <p>This didn't turn out to be enough however: in many cases, this approach would work, but it turned out that in
+                some cases, the score would wildly sometimes, especially if the seeds were already in an optimal postion,
+                and the next round then moved a seed sub-optimally, causing it to rapidly decrease it's score, and then immediately
+                increase rapidly the following round.
+            </p>
+            <p>So instead, we played a game of averages with our scores every round. At each round, we would do the following:</p>
+            <ul>
+                <li>If we haven't gone 10 rounds yet, return</li>
+                <li>Else, get the history of scores for the last 10 rounds</li>
+                <li>Calculate the average of those 10 scores to get a mean score</li>
+                <li>Now if in the last 10 scores, there have been 5 that have moved "significantly" away from the mean in the
+                    positive direction, then we keep going. Otherwise, we terminate, as the scores have failed to chaneg
+                    significantly/ change positively in the last 10 rounds.
+                </li>
+                <li>Significantly is defined as being 3 points away from the mean</li>
+            </ul>
+            <p>This method turned out to work remarkably well in terms of calling the algorithm to terminate when needed.</p>
+            <p>NOTE: an alternative we considered was to use a "Max score" property: aka calculate a maximum available score
+                and check if the current score is near this. We decided against this approach, simply due to generalisationL
+                the above method is quite robust to changes in the number of seeds and change of map. However for the latter
+                method, a max score would need to be manually recalcuated for each map and number of seeds. We felt this
+                was unnecessary to do, especially after testing showed the former algorithm to work quite well.
+            </p>
+            <h1>Evaluation</h1>
+
+            <p>We will provide a comprehensive evaluation of our final genetic algorithm, testing by varying our parameters
+                in the algorithm and maps that we run the algorithm on to test generalisation.
+            </p>
+
+            <h3>Map 1: initial test map</h3>
+            <p>This tests the map that has the features:</p>
+            <ul>
+                <li>A water square at (0,0)</li>
+                <li>Dirt around the water from (-10,10) in the (x,z) directions</li>
+            </ul>
+
+            <h4>
+                <b>Chart 1: Accuracy Data</b>
+            </h4>
+
+            <div class="justify-content-center">
+                <img src="charts1/2.PNG" />
+            </div>
+            <p>
+                The above chart shows a histogram plot of 1000 runs of the algorithm on 10 seeds, with the y axis
+                representing the number of times that that particular seed number was planted. As you can see, for 
+                this original test map, the generalised algorithm does quite well, with the dominating 
+                probability/ frequency being 10 seeds out of 10 planted.
+            </p>
+            <h4>
+                <b>Chart 2: Convergence Data</b>
+            </h4>
+
+            <div class="justify-content-center">
+                <img src="charts1/1.PNG" />
+            </div>
+
+            <p>Another interesting aspect we wanted to investigate was a profiling of when the algorithm terminates. The above 
+                chart shows the frequency of rounds when the algorihtm terminates. We see an intersting rough normal distribution
+                appearing, centered around 19 as the rough mean. this provides us valuable information about how reliably our 
+                algorithm converges, aka, whether there is some kind of pattern or whether it "stumbles" onto a solution. In
+                this case, we see that the algorithm has quite a defined convergence pattern, and indeed if we were to have some 
+                finite number of rounds to execute in, we could start to estimate our success rates with such a graph. 
+            </p>
+
+            <h4>
+                <b>Chart 3: Euclidean Distance between seeds</b>
+            </h4>
+            <div class="justify-content-center">
+                <img src="charts1/3.PNG" />
+            </div>
+
+            <p>Placing crops in an organised manner close to each other is an important aspect of minecraft farming. We wanted to
+                run a test of average (eucliedan) distance for a point to the rest of the points on a graph/ map we knew was 
+                successful to use as a baseline for testing whether map size/layout has an impact on proximity of plants to 
+                one another. The initial test results are summarised in a histogram above, which defines ranges for the Euclidean
+                distance and then buckets the results from 1000 runs into their corresponding frequencies.
+            </p>
+
+            <p>We see that, for our ideal test map, the most common global distances are between 2 and 2.5 blocks. We will use this 
+                as a reference point for future maps.
+            </p>
+
+            <h2><em>Varying the seeds</em></h2>
+            <h4>
+                <b>Chart 4: Accuracy Data with varying seeds</b>
+            </h4>
+            <div class="justify-content-center">
+                <img src="charts1/5.PNG" />
+            </div>
+
+            <p>This time, we repeated the accuracy test (how many seeds from the available were planted)
+                but this time, the above chart essentially shows (over 1000 runs for each number of seeds)
+                how many seeds we actually lost.      
+            </p>
+
+            <p>Very interestingly, it seems that in this map, the number of seeds that were misplanted has no 
+                correlation with the number of seeds available: that is, no matter how many seeds you start 
+                off with, you'll always get roughly one of them planted in a non optimal area
+            </p>
+
+            <p>This can be explained with the following:</p>
+
+            <ul>
+                <li>We found earlier that our accuracy was above 90%. So for all values of number of seeds, it makes sense 
+                    that very few are lost
+                </li>
+                <li>There is an interesting up/down movement occuring in the chart, which represents even numbers of seeds
+                    are more successful than odd numbers of seeds. This is because, in the even number of seeds, a clear line 
+                    between 50% children and 50% elite seeds can be drawn. The same cannot be said for odd numbers of seeds: so 
+                    we must draw (n+1) children from only n seeds. This small bias means there is less variation in the offspring 
+                    we produce, and so the odd numbers of seeds automatically have a lower success rate.
+                </li>
+            </ul>
+
+            <h4>
+                <b>Chart 5: Convergence Data with varying number of seeds</b>
+            </h4>
+
+            <div class="justify-content-center">
+                <img src="charts1/4.PNG" />
+            </div>
+
+            <p>This time, we repeated the convergence test (how many rounds until reasonable confidence that the optimal solution has been found)
+                    but this time, the above chart essentially shows (over 1000 runs for each number of seeds)
+                    how many rounds on average it took until we artifically broke out of our round loop, under the confidence 
+                    that we have the right solution.     
+                </p>
+            
+            <p>As we expected, the more seeds we have, the more rounds it takes to be confident that all of those seeds form in 
+                some kind of (near) optimal position.
+            </p>
+
+            <h2>Generalising our current solution</h2>
+
+            <p>Now, we aim to take our generalised algorithm (after testing on our base map) and try it on different maps, to 
+                see if we managed to succeed to make it general for different kinds of structures/ challenges.
+            </p>
+
+            <h3>Map 2: Surrounding water map</h3>
+
+            <p>This map is now flipped: rather than focussing on one water square that hydrates a central area, we wanted to see how our 
+                algorithm performs when the water is Surrounding the territory.
+            </p>
+            <p>We made a map which looks something like this:</p>
+
+            <img src="map.PNG"/>
+
+            <p>(White is rock, light blue is plantable area, dark blue is water)</p>
+
+            <p>We will now use the same evaluation metrics on this map to compare to the initial map.
+                The charts will be presented first, followed by a breakdown of the results and explanation/ our theory about the results.
+            </p>
+
+            <h4>
+                    <b>Chart 1: Accuracy Data</b>
+                </h4>
+    
+                <div class="justify-content-center">
+                    <img src="charts2/2.PNG" />
+                </div>
+                <p>
+                    The above chart shows a histogram plot of 1000 runs of the algorithm on 10 seeds, with the y axis
+                    representing the number of times that that particular seed number was planted.
+                </p>
+                <p>As you can see, for this map, the accuracy has dropped quite significantly. Further analysis of the 
+                    data shows that the average planting rate has dropped to around 2.28 / 10.
+                </p>
+                <h4>
+                    <b>Chart 2: Convergence Data</b>
+                </h4>
+    
+                <div class="justify-content-center">
+                    <img src="charts2/1.PNG" />
+                </div>
+    
+                <p>The above 
+                    chart shows the frequency of rounds when the algorihtm terminates. The convergence this time is heavily biased 
+                    towards 14/15 rounds, which is an interesting number, since this is the earliest opportnity the algorithm can 
+                    exit. 
+                </p>
+    
+                <h4>
+                    <b>Chart 3: Euclidean Distance between seeds</b>
+                </h4>
+                <div class="justify-content-center">
+                    <img src="charts2/3.PNG" />
+                </div>
+    
+                <p>The test results are again summarised in a histogram above, which defines ranges for the Euclidean
+                    distance and then buckets the results from 1000 runs into their corresponding frequencies.
+                </p>
+    
+                <p>We see that, for this "surrounding water" map, the most common global distances are between 2 and 2.5 blocks also.
+                </p>
+    
+                <h2><em>Varying the seeds</em></h2>
+                <h4>
+                    <b>Chart 4: Accuracy Data with varying seeds</b>
+                </h4>
+                <div class="justify-content-center">
+                    <img src="charts2/5.PNG" />
+                </div>
+  
+                <p>For this map, we can see this time the number of seeds is correlated with the accuracy: the reason this time is
+                    because, rather than being mostly successful, the algorithm is mostly unsuccessful, meaning that the 
+                    rate of misplanted seeds steeply rises with more given seeds.                            
+                </p>
+    
+                <h4>
+                    <b>Chart 5: Convergence Data with varying number of seeds</b>
+                </h4>
+    
+                <div class="justify-content-center">
+                    <img src="charts2/4.PNG" />
+                </div>
+    
+                <p>Again, the above chart essentially shows (over 1000 runs for each number of seeds)
+                        how many rounds on average it took until we artifically broke out of our round loop, under the confidence 
+                        that we have the right solution.     
+                    </p>
+                
+                <p>This time, the chart has the opposite properties to the initial map's properties for the same chart: instead of 
+                    showing a clear correlation, we see that the number of rounds needed to accept the current planting co-ordinates 
+                    and stop searching is roughly independant of the number of seeds.
+                </p>
+               
+            <h3>Summary/ comparison of results</h3>
+
+            <p>So clearly, comparing these results to our results for the initial test map, the results for this one 
+                have not been anywhere near as successful. The accuracy has dropped significantly, and looking at the 
+                convergence charts, the algorithms seem to be breaking out of the rounds as soon as they can.
+            </p>
+            <p><b>Why does this happen?</b></p>
+            <p>This can be attributed to the score function: our score function is currently checking for proximity to a water square.
+                This works incredibly well for a map with a centralised water source: however, causes a big issue when water is 
+                essentially everywhere on the map. The simple reason is that, now, as far as our score function is concerned, 
+                the middle of the water is technically an optimal zone (since it is surrounded by water), as is the edge of the map etc.
+            </p>
+            <p>So this second test map has revealed a flaw in our scoring method and something that we could fix in the future with more time; making 
+                a more complex scoring function that deals with the case of abundance of water squares.
+            </p>
+            <h1>References</h1>
+
+            <h3>Specific software technologies</h3>
+
+            <p>We used matplotlib to generate all figures used throughout this webpage. Matplotlib is a plotting library for
+                the Python programming language, which we used together with jupyter notebook, an open-source web application
+                that allows you to create and share documents that contain live code, to generate our figures and test the
+                output we were getting
+            </p>
+            <p>
+                References to both are below
+            </p>
+
+            <h5>
+                Jupyter notebook
+            </h5>
+            <p>Visit
+                <a href="https://jupyter.org/"> here</a> to read more</p>
+
+            <h5>Matplotlib</h5>
+            <p>Visit
+                <a href="https://matplotlib.org/"> here</a> to read more</p>
+
+            <h3>Referenes to resources on Genetic Algorithms</h3>
+            <p>Below is a list of resources we found useful when researching Genetic Algorithms
+            </p>
+
+            <h5>Matlab Article</h5>
+            <p class="pb-0 mb-0">This resource demonstrates how a genetic algorithm is used to find minimum points on a graph</p>
+            <p class="p-0 mt-0">A nice breakdown is given of the seperate stages of the genetic algorithm and how you can actually code up a
+                solution by yourself</p>
+            <p>Visit
+                <a href="https://www.mathworks.com/help/gads/how-the-genetic-algorithm-works.html">here</a> to see the article</p>
+            <h5>Video Demonstration</h5>
+            <p>The below video shows a nice visual animation on how genetic algorithms repeatedly take the best performing samples
+                from the "gene pool" to eventually converge on a population that each finds itself on some optimal point.
+            </p>
+            <p>See the video on youtube
+                <a href="https://www.youtube.com/watch?v=xNb3Hu2Ouuw">here</a>
+            </p>
+            <h5>Washington University</h5>
+            <p>This gives a brief insight into how genetic algorithms came about and a general overview of implementation</p>
+            <p>
+                See it
+                <a href="https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/gaintro.html">here</a>
+            </p>
+            <h5>Wiki page</h5>
+            <p>Gives a few good examples of genetic algorithms</p>
+            <p>See it
+                <a href="https://en.wikipedia.org/wiki/Genetic_algorithm">here</a>
+            </p>
+
 
         </div>
     </div>
