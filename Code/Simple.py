@@ -445,13 +445,23 @@ def errorChecking(maxConfiguration, num_seeds, mapsize):
     for x,z in maxConfiguration:
         t_x = x
         t_z = z
-        while t_x < -mapsize: t_x = -mapsize + (mapsize / 3)
-        while t_x > mapsize: t_x = mapsize - (mapsize / 3)
-        while t_z < -mapsize: t_z = -mapsize + (mapsize / 3)
-        while t_z > mapsize: t_z = mapsize - (mapsize / 3)
+        while t_x < -mapsize:
+            #print("in 1")
+            t_x = -mapsize + (mapsize / 3)
+        while t_x > mapsize:
+           # print("in 2")
+            t_x = mapsize - (mapsize / 3)
+        while t_z < -mapsize:
+          #  print("in 3")
+            t_z = -mapsize + (mapsize / 3)
+        while t_z > mapsize:
+         #   print("in 4")
+            t_z = mapsize - (mapsize / 3)
         trueMaxConfiguration.append( (int(t_x), int(t_z)) )
 
     while len(set(trueMaxConfiguration)) < num_seeds:
+
+        #print("in num set loop")
         newMaxConfig = []
         seen = set()
         for tup in trueMaxConfiguration:
@@ -463,13 +473,21 @@ def errorChecking(maxConfiguration, num_seeds, mapsize):
 
                 while(new_x, tup[1]) in seen:
                     if new_x != -mapsize and abs(new_x - mapsize) < abs(new_x - -mapsize):
-                        new_x -= 1
+                        dec = random.randint(1,8)
+                        new_x -= dec
+                        #print("if", new_x)
                     else:
-                        new_x += 1
+                        inc = random.randint(1,8)
+
+                        if new_x == 0: new_x += 6
+                        else: new_x += inc
+                        #print("else", new_x)
 
                 updated_tup = (new_x, tup[1])
                 seen.add(updated_tup)
                 newMaxConfig.append(updated_tup)
+
+                print(updated_tup)
         trueMaxConfiguration = newMaxConfig
     return trueMaxConfiguration
 
@@ -577,10 +595,12 @@ scoresVal = []
 
 intemediary = []
 
-#for vary_seeds in range(1000):
-    #planting_coords = getBestPlantingCoords(dirt, rock, water, 10)
-    #intemediary.append(getAverageEuclidean(planting_coords))
-    #print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
+for vary_seeds in range(1000):
+    planting_coords = getBestPlantingCoords(dirt, rock, water, 10, int((NUM_COLS / 2)-0.5))
+    intemediary.append(getAverageEuclidean(planting_coords))
+    print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
+
+    print(" [[[[[[[[[  ", vary_seeds, " ]]]]]]]]]] COMPLETE")
 
 #print()
 #print(planting_coords)
