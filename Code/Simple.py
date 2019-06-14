@@ -152,8 +152,8 @@ missionXML_corner_water = generateMissionXML('''
                     <DrawCuboid x1="15" y1="226" z1="-15" x2="20" y2="226" z2="-20" type="water" />
                     ''')
 
-NUM_ROWS = 31
-NUM_COLS = 31
+NUM_ROWS = 41
+NUM_COLS = 41
 
 def getAverageEuclidean(pointslist):
     total = 0
@@ -431,7 +431,7 @@ if agent_host.receivedArgument("help"):
 #teleport him out of water square
 teleport(agent_host,2,2)
 
-my_mission = MalmoPython.MissionSpec(missionXML_surrounding_water, True)
+my_mission = MalmoPython.MissionSpec(missionXML_corner_water, True)
 my_mission_record = MalmoPython.MissionRecordSpec()
 
 # Attempt to start a mission:
@@ -472,12 +472,12 @@ dirt = set()
 rock = set()
 water = set()
 
-print(js_dict['crops30x30'])
+print(js_dict['crops40x40'])
 
 raw_index = 0
-for block in js_dict['crops30x30']:
-    row = int(raw_index / NUM_COLS)-10
-    col = (raw_index % NUM_COLS)-10
+for block in js_dict['crops40x40']:
+    row = int(raw_index / NUM_COLS)-(NUM_COLS / 2)+0.5
+    col = (raw_index % NUM_COLS)-(NUM_COLS / 2)+0.5
     raw_index += 1
 
     if block == 'dirt' or block == 'farmland':
@@ -511,6 +511,10 @@ dirt = list(dirt)
 rock = list(rock)
 water = list(water)
 '''
+
+for water_coord in water:
+    print(water_coord)
+
 agent_host.sendCommand("pitch 0.5")
 time.sleep(5)
 
