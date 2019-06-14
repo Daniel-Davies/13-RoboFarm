@@ -72,7 +72,7 @@ def generateMissionXML(inputWorld):
         <AgentSection mode="Survival">
             <Name>Odie</Name>
             <AgentStart>
-                <Placement x="0.5" y="227.0" z="0.5" yaw="90"/>
+                <Placement x="0.5" y="226.0" z="0.5" yaw="90"/>
                 <Inventory>
                     <InventoryItem slot="0" type="wheat_seeds" quantity="''' + str(10) + '''"/>
                 </Inventory>
@@ -91,6 +91,18 @@ def generateMissionXML(inputWorld):
                     <Grid name="crops20x20">
                     <min x="-10" y="0" z="-10"/>
                     <max x="10" y="0" z="10"/>
+                    </Grid>
+                    <Grid name="crops30x30">
+                    <min x="-15" y="0" z="-15"/>
+                    <max x="15" y="0" z="15"/>
+                    </Grid>
+                    <Grid name="crops40x40">
+                    <min x="-20" y="0" z="-20"/>
+                    <max x="20" y="0" z="20"/>
+                    </Grid>
+                    <Grid name="crops50x50">
+                    <min x="-25" y="0" z="-25"/>
+                    <max x="25" y="0" z="25"/>
                     </Grid>
                 </ObservationFromGrid>
                 <AgentQuitFromCollectingItem>
@@ -116,11 +128,14 @@ missionXML_hell = generateMissionXML('''
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="stone" />                    
                     <DrawCuboid x1="-10" y1="226" z1="-10" x2="10" y2="226" z2="10" type="farmland" />
                     <DrawCuboid x1="0" y1="226" z1="0" x2="0" y2="226" z2="0" type="water" />
+                    <DrawCuboid x1="-10" y1="226" z1="-10" x2="-10" y2="226" z2="-10" type="grass" />
+                    <DrawCuboid x1="10" y1="226" z1="10" x2="10" y2="226" z2="10" type="grass" />
+                    <DrawCuboid x1="9" y1="226" z1="10" x2="9" y2="226" z2="10" type="grass" />
                     ''')
 
 #                 <DrawCuboid x1="-10" y1="226" z1="-10" x2="-10" y2="226" z2="-10" type="grass" />
 #                 <DrawCuboid x1="10" y1="226" z1="10" x2="10" y2="226" z2="10" type="grass" />
-#                 <DrawCuboid x1="9" y1="226" z1="10" x2="9" y2="226" z2="10" type="grass" />S
+#                 <DrawCuboid x1="9" y1="226" z1="10" x2="9" y2="226" z2="10" type="grass" />
 
 missionXML_surrounding_water = generateMissionXML(''' 
                     <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="228" z2="50" type="air" />
@@ -137,8 +152,8 @@ missionXML_corner_water = generateMissionXML('''
                     <DrawCuboid x1="15" y1="226" z1="-15" x2="20" y2="226" z2="-20" type="water" />
                     ''')
 
-NUM_ROWS = 10
-NUM_COLS = 10
+NUM_ROWS = 41
+NUM_COLS = 41
 
 def getAverageEuclidean(pointslist):
     total = 0
@@ -248,7 +263,6 @@ def select_weaker_seeds(scores_tuples):
 
 
 def score_seeds(seed_locations, dirt, rock, water):
-    assert (len(water) > 0)
     scores = dict()
 
     '''
@@ -263,7 +277,7 @@ def score_seeds(seed_locations, dirt, rock, water):
             water_distances = []
             for water_tup in water:
                 water_distances.append(hypot(water_tup[0] - seed_tup[0], water_tup[1] - seed_tup[1]))
-            water_dist = min(water_distances)
+            water_dist = min(water_distances) if len(water) > 0 else 0.0
 
             max_distance = sqrt(200)  # sqrt(10^2 + 10^2), will vary based on map size
             raw_score = max_distance - water_dist
@@ -417,7 +431,7 @@ if agent_host.receivedArgument("help"):
 #teleport him out of water square
 teleport(agent_host,2,2)
 
-my_mission = MalmoPython.MissionSpec(missionXML_hell, True)
+my_mission = MalmoPython.MissionSpec(missionXML_corner_water, True)
 my_mission_record = MalmoPython.MissionRecordSpec()
 
 # Attempt to start a mission:
@@ -450,20 +464,20 @@ print()
 obs = agent_host.getWorldState().observations
 for item in obs:
     js_dict = json.loads(item.text)
-    #print(js_dict['crops20x20'])
 
 print()
 print()
 
-#print("LEN ", len(js_dict['crops20x20']))
 dirt = set()
 rock = set()
 water = set()
 
+print(js_dict['crops40x40'])
+
 raw_index = 0
-for block in js_dict['crops20x20']:
-    row = int(raw_index / 21)-10
-    col = (raw_index % 21)-10
+for block in js_dict['crops40x40']:
+    row = int(raw_index / NUM_COLS)-(NUM_COLS / 2)+0.5
+    col = (raw_index % NUM_COLS)-(NUM_COLS / 2)+0.5
     raw_index += 1
 
     if block == 'dirt' or block == 'farmland':
@@ -472,6 +486,8 @@ for block in js_dict['crops20x20']:
         rock.add((row, col))
     elif block == 'water':
         water.add((row, col))
+
+print("FOUND THIS MANY WATER BLOCKS:   ", len(water))
 
 
 time.sleep(2)
@@ -495,6 +511,10 @@ dirt = list(dirt)
 rock = list(rock)
 water = list(water)
 '''
+
+for water_coord in water:
+    print(water_coord)
+
 agent_host.sendCommand("pitch 0.5")
 time.sleep(5)
 
