@@ -152,8 +152,8 @@ missionXML_corner_water = generateMissionXML('''
                     <DrawCuboid x1="15" y1="226" z1="-15" x2="20" y2="226" z2="-20" type="water" />
                     ''')
 
-NUM_ROWS = 41
-NUM_COLS = 41
+NUM_ROWS = 31
+NUM_COLS = 31
 
 def getAverageEuclidean(pointslist):
     total = 0
@@ -245,6 +245,16 @@ def mutate(coordinate, round_num, mapsize):
         offsetY = random.randint(-mapsize+round_num, mapsize-round_num)
         x = x + offsetX
         y = y + offsetY
+
+        if x < -mapsize: x = -mapsize
+        if x > mapsize: x = mapsize
+        if y < -mapsize: y = -mapsize
+        if y > mapsize: y = mapsize
+
+        #if (x < -15 or x > 15) or (y < -15 or y > 15):
+        #    print("  --- MUTATED ILLEGALLLYYYY")
+        #    return coordinate
+        #else:
         return (x, y)
     else:
         return coordinate
@@ -320,8 +330,22 @@ def score_seeds(seed_locations, dirt, rock, water):
             for seed_tup in max_seed_set:
                 scores[seed_tup] += 0.5
 
+
     #print(seed_locations)
     #print(scores)
+
+    for seed_tup in seed_locations:
+        if seed_tup in rock or seed_tup in water:
+            # Invalid seed placement -> 0.0 score
+            scores[seed_tup] = 0.0
+
+    '''
+    print()
+    for key in scores:
+        print(key[0], key[1], " -> ", round(scores[key], 2), " ", end='')
+    print()
+    '''
+
     return scores.items()
 
 
@@ -358,8 +382,8 @@ def shouldLoopBreak(varianceList):
 def scoreInRange(coords):
     return sum(map(lambda x: inRange(calculateOptimalRange(), x), coords))
 
-def getBestPlantingCoords(dirt, rock, water, num_seeds):
-    planting_coords = initialise_planting_coords(10, num_seeds, water)
+def getBestPlantingCoords(dirt, rock, water, num_seeds, mapsize):
+    planting_coords = initialise_planting_coords(mapsize, num_seeds, water)
     #print()
     #print("Round 1")
     #print(planting_coords)
@@ -401,7 +425,7 @@ def getBestPlantingCoords(dirt, rock, water, num_seeds):
             while(True):
                 mutation = random.randint(0, len(planting_coords) - 1)
                 #print("Pre-mutation: " + str(planting_coords[mutation]))
-                mutated = mutate(planting_coords[mutation], loopVal, 10)
+                mutated = mutate(planting_coords[mutation], loopVal, mapsize)
                 #print("Post-mutation: " + str(mutated))
                 if not(mutated in planting_coords) and not(mutated in water):
                     break
@@ -413,7 +437,61 @@ def getBestPlantingCoords(dirt, rock, water, num_seeds):
             breakVals.append(loopVal)
             break
 
-    return maxConfiguration
+    # Error checking against faulty mutations
+    return errorChecking(maxConfiguration, num_seeds, mapsize)
+
+def errorChecking(maxConfiguration, num_seeds, mapsize):
+    trueMaxConfiguration = []
+    for x,z in maxConfiguration:
+        t_x = x
+        t_z = z
+        while t_x < -mapsize:
+            #print("in 1")
+            t_x = -mapsize + (mapsize / 3)
+        while t_x > mapsize:
+           # print("in 2")
+            t_x = mapsize - (mapsize / 3)
+        while t_z < -mapsize:
+          #  print("in 3")
+            t_z = -mapsize + (mapsize / 3)
+        while t_z > mapsize:
+         #   print("in 4")
+            t_z = mapsize - (mapsize / 3)
+        trueMaxConfiguration.append( (int(t_x), int(t_z)) )
+
+    while len(set(trueMaxConfiguration)) < num_seeds:
+
+        #print("in num set loop")
+        newMaxConfig = []
+        seen = set()
+        for tup in trueMaxConfiguration:
+            if tup not in seen:
+                seen.add(tup)
+                newMaxConfig.append(tup)
+            else:
+                new_x = tup[0]
+
+                while(new_x, tup[1]) in seen:
+                    if new_x != -mapsize and abs(new_x - mapsize) < abs(new_x - -mapsize):
+                        dec = random.randint(1,8)
+                        new_x -= dec
+                        #print("if", new_x)
+                    else:
+                        inc = random.randint(1,8)
+
+                        if new_x == 0: new_x += 6
+                        else: new_x += inc
+                        #print("else", new_x)
+
+                updated_tup = (new_x, tup[1])
+                seen.add(updated_tup)
+                newMaxConfig.append(updated_tup)
+
+                print(updated_tup)
+        trueMaxConfiguration = newMaxConfig
+    return trueMaxConfiguration
+
+
 
 
 agent_host = MalmoPython.AgentHost()
@@ -431,7 +509,7 @@ if agent_host.receivedArgument("help"):
 #teleport him out of water square
 teleport(agent_host,2,2)
 
-my_mission = MalmoPython.MissionSpec(missionXML_corner_water, True)
+my_mission = MalmoPython.MissionSpec(missionXML_surrounding_water, True)
 my_mission_record = MalmoPython.MissionRecordSpec()
 
 # Attempt to start a mission:
@@ -472,13 +550,18 @@ dirt = set()
 rock = set()
 water = set()
 
-print(js_dict['crops40x40'])
+#print(js_dict['crops30x30'])
 
 raw_index = 0
-for block in js_dict['crops40x40']:
+for block in js_dict['crops30x30']:
     row = int(raw_index / NUM_COLS)-(NUM_COLS / 2)+0.5
     col = (raw_index % NUM_COLS)-(NUM_COLS / 2)+0.5
     raw_index += 1
+
+    if row > 15 or row < -15:
+        print("ROW EXCEEDED at ", block)
+    if col > 15 or col < -15:
+        print("COL EXCEEDED at ", block)
 
     if block == 'dirt' or block == 'farmland':
         dirt.add((row, col))
@@ -496,24 +579,13 @@ teleport(agent_host, 4, 4)
 print("Mission running ", end=' ')
 
 
-teleport(agent_host,2,2)
+teleport(agent_host, 2, 2)
+
 '''
-for i in range(-10, 11):
-    for j in range(-10, 11):
-        dirt.add((i, j))
-
-water.add((0, 0))
-
-for i in water:
-    dirt.remove(i)
-
-dirt = list(dirt)
-rock = list(rock)
-water = list(water)
-'''
-
 for water_coord in water:
-    print(water_coord)
+    if (-15 <= water_coord[0] <= -10) and (-15 <= water_coord[1] <= -10):
+        print(water_coord)
+'''
 
 agent_host.sendCommand("pitch 0.5")
 time.sleep(5)
@@ -523,19 +595,35 @@ scoresVal = []
 
 intemediary = []
 
-#for vary_seeds in range(1000):
-    #planting_coords = getBestPlantingCoords(dirt, rock, water, 10)
-    #intemediary.append(getAverageEuclidean(planting_coords))
-    #print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
+for vary_seeds in range(1000):
+    planting_coords = getBestPlantingCoords(dirt, rock, water, 10, int((NUM_COLS / 2)-0.5))
+    intemediary.append(getAverageEuclidean(planting_coords))
+    print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
+
+    print(" [[[[[[[[[  ", vary_seeds, " ]]]]]]]]]] COMPLETE")
 
 #print()
 #print(planting_coords)
 
-planting_coords = getBestPlantingCoords(dirt, rock, water, 10)
+
+print(" ---- SETTING MAP SIZE TO:  ",(NUM_COLS / 2)-0.5 )
+planting_coords = getBestPlantingCoords(dirt, rock, water, 10, int((NUM_COLS / 2)-0.5))
 
 
 scoresVal.append(scoreInRange(planting_coords))
 print(str(scoreInRange(planting_coords)) + " seeds were successfully planted in the hydrated zone")
+
+
+'''
+print("WATER TEST")
+for coord in planting_coords:
+    if coord in water:
+        print(coord, " is in water.")
+    elif coord in dirt:
+        print(coord, " ON FARMLAND")
+    else:
+        print(coord, " mystery coordinate ?????")
+'''
 
 #print(scoresVal)
 
