@@ -94,7 +94,7 @@
             <div class="d-flex justify-content-center">
                 <img src='heatmap.png' />
             </div>
-            <p>So essentially, there are areas that are "hot" (close to water for example) and "cold" (dry dirt), which our
+            <p>So essentially, there are areas that are "hot" (maxima in the graph- close to water for example) and "cold" (minima in the graph- dry dirt for example), which our
                 algorithm must differentiate</p>
 
             <h2>Checkpoints</h2>
@@ -400,9 +400,11 @@
             <img src="map.PNG"/>
 
             <p>(White is rock, light blue is plantable area, dark blue is water)</p>
-
-            <p>We will now use the same evaluation metrics on this map to compare to the initial map.
-                The charts will be presented first, followed by a breakdown of the results and explanation/ our theory about the results.
+            <p>The map is the same size as the initial map above, but this time, water has been added to surround the farmland rather than
+                just be a central point. We hope to issue this to the agent as a challenge to see how it will deal with  multiple optimum  
+                points.
+            </p>
+            <p>We will now use the same evaluation metrics on this map to compare to the initial map
             </p>
 
             <h4>
@@ -416,8 +418,20 @@
                     The above chart shows a histogram plot of 1000 runs of the algorithm on 10 seeds, with the y axis
                     representing the number of times that that particular seed number was planted.
                 </p>
-                <p>As you can see, for this map, the accuracy has dropped quite significantly. Further analysis of the 
-                    data shows that the average planting rate has dropped to around 2.28 / 10.
+                <p>As you can see, for this map, the accuracy has dropped on this map: while still better than using a 
+                    random agent, there is a noticeanle decrease. The histogram shows this quite nicely by how sprerad out the 
+                    bars are compared to the first chart, that is, there is much more uncertainty now about how many seeds an 
+                    agent will correctly plant compared to our small initial map.
+
+                    We expect this inaccuracy to stem from the fact that water now surrounds the entire planting area; this means that 
+                    now, when two seed locations are crossed over, there is a potential that the two selected seed co-ordinates are 
+                    at opposite ends of the map. This in turn means that if we take one co-ordinate from one, and one from the other,
+                    a seed could end up in the middle of the rock at the center of the map.
+
+                    To prevent something like this in the future, we could theoretically have used a less strict convergence algorithm,
+                    which would have let more potential mutations be tried out, and so more chance of two seeds landing next to each other 
+                    would have been explored.
+
                 </p>
                 <h4>
                     <b>Chart 2: Convergence Data</b>
@@ -427,10 +441,9 @@
                     <img src="charts2/1.PNG" />
                 </div>
     
-                <p>The above 
-                    chart shows the frequency of rounds when the algorihtm terminates. The convergence this time is heavily biased 
-                    towards 14/15 rounds, which is an interesting number, since this is the earliest opportnity the algorithm can 
-                    exit. 
+                <p>As you can see from this chart, the convergence hasn't significantly changed for this map. Indeed, we wouldn't 
+                    exactly expect it to either: the maps were the same size, so the agent doesn't have to necessarily decide on
+                    any more squares than it had in the initial map. 
                 </p>
     
                 <h4>
@@ -444,7 +457,9 @@
                     distance and then buckets the results from 1000 runs into their corresponding frequencies.
                 </p>
     
-                <p>We see that, for this "surrounding water" map, the most common global distances are between 2 and 2.5 blocks also.
+                <p>The histogram has shifted in the positive direction and spread itself out: so now we have more variance in where
+                    seeds land and how many land in a particular region. This of course makes sense: the optimum region now is quite 
+                    large so seeds have a lot more freedom of where they could select their final location.
                 </p>
     
                 <h2><em>Varying the seeds</em></h2>
@@ -455,11 +470,15 @@
                     <img src="charts2/5.PNG" />
                 </div>
   
-                <p>For this map, we can see this time the number of seeds is correlated with the accuracy: the reason this time is
-                    because, rather than being mostly successful, the algorithm is mostly unsuccessful, meaning that the 
-                    rate of misplanted seeds steeply rises with more given seeds.                            
+                <p>Again, the accuracy is better than what a random agent would perform like, but this time compared to our 
+                    original test map, the number of seeds misplanted linearly rises with the number of seeds. This is because 
+                    this time, the planting rate isn't (almost) perfect like on our initial training map, and has an error rate
+                    which is quite high: so as the number of seeds rises, so does the number of misplanted seeds.                        
                 </p>
-    
+                <p>It is interesting to see however that the error rate doesn't change with the number of seeds, which can 
+                    be seen because of the linearly rising pattern of the graph.
+                </p>
+                
                 <h4>
                     <b>Chart 5: Convergence Data with varying number of seeds</b>
                 </h4>
@@ -473,26 +492,52 @@
                         that we have the right solution.     
                     </p>
                 
-                <p>This time, the chart has the opposite properties to the initial map's properties for the same chart: instead of 
-                    showing a clear correlation, we see that the number of rounds needed to accept the current planting co-ordinates 
-                    and stop searching is roughly independant of the number of seeds.
+                <p>We see that the number of rounds needed to accept the current planting co-ordinates 
+                    and stop searching is roughly independant of the number of seeds, or at least rises very slowly with 
+                    number of seeds.
                 </p>
                
             <h3>Summary/ comparison of results</h3>
 
-            <p>So clearly, comparing these results to our results for the initial test map, the results for this one 
-                have not been anywhere near as successful. The accuracy has dropped significantly, and looking at the 
-                convergence charts, the algorithms seem to be breaking out of the rounds as soon as they can.
+            <p>So from these results we can mostly take that, while our algorithm still does perform better than a random 
+                agent would on the same map, it is quite inaccurate compared to our initial map. This suggests there is some 
+                deal of overfitting taking place that makes our algorithm unable to generalise fully when taken into a 
+                different style of map, with water surrounding the farmland rather than there being one central point of water.
             </p>
-            <p><b>Why does this happen?</b></p>
-            <p>This can be attributed to the score function: our score function is currently checking for proximity to a water square.
-                This works incredibly well for a map with a centralised water source: however, causes a big issue when water is 
-                essentially everywhere on the map. The simple reason is that, now, as far as our score function is concerned, 
-                the middle of the water is technically an optimal zone (since it is surrounded by water), as is the edge of the map etc.
+
+            <h3>Map 3: Large map, corner water spot</h3>
+
+            <p>This time, we wanted to see how our algorithm would perform on a very large map. We created a map which was 50x50
+                in size, and wanted to see whether our algorithm would manage such a large scale map/ find the hydrated zone by 
+                use of the mutations.
             </p>
-            <p>So this second test map has revealed a flaw in our scoring method and something that we could fix in the future with more time; making 
-                a more complex scoring function that deals with the case of abundance of water squares.
+            
+            <p class="h3">Results</p>
+
+            <p>For brevity, we will not be including the full run down of all charts, since the reuslts can be easily explained</p>
+
+            <p>We found that, for maps much greater than 20x20, the algorithm just wasn't able to find the hydrated farmland section.
+                The reason is mostly the map exploration side of the algorithm: at the moment, the algorithm doesnt invest a lot in 
+                finding new sections of the map, meaning that unless it gets lucky at the start with a seed generation in the hydrated 
+                zone, it most likely won't find the needed optimal section.
             </p>
+
+            <h1>Overall Summary</h1>
+
+            <p>To quickly conclude the project report, I hope the reader has seen that we have successfully made a genetic algorithm 
+                that can solve the problem of optimally planting seeds for <em>basic</em> maps, of a resonably small size. 
+            </p>
+
+            <p>In the future, would this project have continued, we would have a lot of scope to improve the algorithm to make it work
+                far more generally than it does now. The most important changes we could make would most likely be to the score function, 
+                to incorporate additional minecraft famring parameters such as torches, or to the mutation algorihtm, so that the 
+                algorithm would explore maps more thoroughly, so that it could deal with larger map sizes.
+            </p>
+
+            <p>Overall we hope you have enjoyed reading about the project and thank the professors and TAs for their continued 
+                support and education throughout the quarter.
+            </p>
+
             <h1>References</h1>
 
             <h3>Specific software technologies</h3>
